@@ -147,12 +147,21 @@ body { margin: 0; background: #0b0d17; }
   </div>
 </div>
 
-<!-- Buffer-polyfill EERST (lost de "buffer"-fout op), dan web3 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/buffer/6.0.3/buffer.min.js"></script>
-<script>window.Buffer = window.Buffer || (window.buffer && window.buffer.Buffer);</script>
-<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
-
 <script type="module">
+/* ---- 1. Buffer-polyfill als module, gegarandeerd aanwezig vóór web3 ---- */
+import * as BufMod from 'https://esm.sh/buffer@6.0.3';
+const _B = BufMod.Buffer || (BufMod.default && BufMod.default.Buffer) || BufMod.default;
+if (_B) window.Buffer = _B;
+
+/* ---- 2. web3 pas laden nadat Buffer bestaat ---- */
+await new Promise((res, rej) => {
+  const s = document.createElement('script');
+  s.src = 'https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js';
+  s.onload = res;
+  s.onerror = () => rej(new Error('web3 kon niet laden'));
+  document.head.appendChild(s);
+});
+
 import { getWallets } from 'https://esm.sh/@wallet-standard/app';
 
 /* ====== INSTELLINGEN ====== */
