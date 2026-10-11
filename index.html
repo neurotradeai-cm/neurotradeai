@@ -214,24 +214,27 @@ function deepLink(name){
   return 'https://solana.com/ecosystem';
 }
 
+/* Injected wallets krijgen voorrang (klassieke, betrouwbare route) */
 function buildList(){
   const map = new Map();
+  KNOWN.forEach(w=>{
+    let p=null; try{p=w.get()}catch(e){}
+    if(p) map.set(w.name.toLowerCase(), {id:'inj:'+w.name,name:w.name,color:w.color,kind:'injected',ref:p,detected:true});
+  });
   try{
     const { get, on } = getWallets();
     const scan = arr => (arr||[]).forEach(w=>{
+      const key=w.name.toLowerCase();
+      if(map.has(key)) return;
       const ok=(w.chains||[]).some(c=>c.startsWith('solana:'))||w.features['solana:signTransaction']||w.features['solana:signAndSendTransaction'];
-      if(ok && w.features['standard:connect']){
-        map.set(w.name.toLowerCase(), {id:'std:'+w.name,name:w.name,icon:w.icon,kind:'standard',ref:w,detected:true});
-      }
+      if(ok && w.features['standard:connect']) map.set(key,{id:'std:'+w.name,name:w.name,icon:w.icon,kind:'standard',ref:w,detected:true});
     });
     scan(get());
     on('register',(...ws)=>{ scan(ws.flat?ws.flat():ws); renderWallets(); });
   }catch(e){}
   KNOWN.forEach(w=>{
     const key=w.name.toLowerCase();
-    if(map.has(key)) return;
-    let p=null; try{p=w.get()}catch(e){}
-    map.set(key,{id:'inj:'+w.name,name:w.name,color:w.color,kind:'injected',ref:p,detected:!!p});
+    if(!map.has(key)) map.set(key,{id:'inj:'+w.name,name:w.name,color:w.color,kind:'injected',ref:null,detected:false});
   });
   wallets=[...map.values()].sort((a,b)=>(b.detected?1:0)-(a.detected?1:0));
   renderWallets();
@@ -276,44 +279,47 @@ async function connect(w){
   }catch(e){ setErr('Connection cancelled.'); active=null; }
 }
 
-/* Robuust ondertekenen: probeert meerdere strategieën per wallet-type */
-async function signAndSend(tx){
-  const raw = tx.serialize({ requireAllSignatures:false, verifySignatures:false });
+/* Serialiseer het tx-object, met fallbacks voor verschillende web3-versies */
+function toRaw(tx){
+  try { return tx.serialize({ requireAllSignatures:false, verifySignatures:false }); }
+  catch(e){
+    if(typeof tx.serializeMessage === 'function') return Buffer.from(tx.serializeMessage());
+    return Buffer.from(tx.compileMessage().serialize());
+  }
+}
 
-  if(active.kind==='standard'){
-    const f = active.ref.features;
-    // 1) signAndSendTransaction met bytes
-    if(f['solana:signAndSendTransaction']){
+/* Ondertekenen: wallet krijgt het OBJECT (niet de bytes) + fallbacks */
+async function signAndSend(tx){
+  if(active.kind==='injected'){
+    const p = active.ref;
+    if(p.signAndSendTransaction){
       try{
-        const [{signature}] = await f['solana:signAndSendTransaction'].signAndSendTransaction({transaction:raw, account:active.account, chain:'solana:mainnet'});
-        return typeof signature==='string'?signature:bs58(signature);
-      }catch(e1){
-        // 2) signAndSendTransaction met het Transaction-object
-        try{
-          const [{signature}] = await f['solana:signAndSendTransaction'].signAndSendTransaction({transaction:tx, account:active.account, chain:'solana:mainnet'});
-          return typeof signature==='string'?signature:bs58(signature);
-        }catch(e2){ /* valt door naar signTransaction */ }
-      }
+        const r = await p.signAndSendTransaction(tx);
+        const s = (r && r.signature) ? r.signature : r;
+        if(s) return s;
+      }catch(e){}
     }
-    // 3) signTransaction met bytes -> zelf versturen
-    if(f['solana:signTransaction']){
-      const [{signedTransaction}] = await f['solana:signTransaction'].signTransaction({transaction:raw, account:active.account, chain:'solana:mainnet'});
-      return await connection.sendRawTransaction(signedTransaction, {skipPreflight:false});
+    if(p.signTransaction){
+      const signed = await p.signTransaction(tx);
+      return await connection.sendRawTransaction(signed.serialize());
     }
     throw new Error('wallet cannot sign');
   }
 
-  // injected wallets
-  const p = active.ref;
-  if(p.signAndSendTransaction){
-    try{
-      const r = await p.signAndSendTransaction(tx);
-      const sig = (r && r.signature) ? r.signature : r;
-      if(sig) return sig;
-    }catch(e){ /* valt door naar signTransaction */ }
+  // wallet-standard
+  const f = active.ref.features;
+  if(f['solana:signAndSendTransaction']){
+    const call = t => f['solana:signAndSendTransaction']
+      .signAndSendTransaction({ transaction:t, account:active.account, chain:'solana:mainnet' })
+      .then(r => { const s=r[0].signature; return typeof s==='string'?s:bs58(s); });
+    try{ return await call(tx); }catch(e){ return await call(toRaw(tx)); }
   }
-  const signed = await p.signTransaction(tx);
-  return await connection.sendRawTransaction(signed.serialize(), {skipPreflight:false});
+  if(f['solana:signTransaction']){
+    const [{signedTransaction}] = await f['solana:signTransaction']
+      .signTransaction({ transaction:toRaw(tx), account:active.account, chain:'solana:mainnet' });
+    return await connection.sendRawTransaction(signedTransaction);
+  }
+  throw new Error('wallet cannot sign');
 }
 
 async function claim(){
